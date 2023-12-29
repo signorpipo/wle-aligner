@@ -1,0 +1,39 @@
+{
+    "name": "wle-aligner",
+    "version": "0.1.0",
+    "author": "Pipo",
+    "description": "Align Wonderl Engine projects so that they can share, as much as possible, the same resources and structure",
+    "homepage": "https://github.com/SignorPipo/wle-aligner",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SignorPipo/wle-aligner.git"
+    },
+    "license": "ISC",
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "pp",
+        "pipo",
+        "wonderland",
+        "wonderlandengine",
+        "wonderland-engine",
+        "wonderland engine",
+        "wle",
+        "webxr"
+    ],
+    "type": "module",
+    "main": "./dist/index.js",
+    "peerDependencies": {},
+    "devDependencies": {
+        "@types/node": "^20.6.3",
+        "typescript": "^5.2.2",
+        "@typescript-eslint/parser": "^6.8.0",
+        "eslint": "^8.51.0",
+        "eslint-plugin-deprecation": "^2.0.0"
+    },
+    "scripts": {
+        "build": "tsc",
+        "wle-aligner": "node dist/index.js"
+    }
+}

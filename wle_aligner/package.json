@@ -26,7 +26,8 @@
     "main": "./dist/run_wle_aligner.js",
     "devDependencies": {
         "@types/node": "^20.10.5",
-        "@typescript-eslint/parser": "^6.8.0",
+        "@typescript-eslint/eslint-plugin": "^6.16.0",
+        "@typescript-eslint/parser": "^6.16.0",
         "eslint": "^8.51.0",
         "eslint-plugin-deprecation": "^2.0.0",
         "typescript": "^5.2.2"
@@ -34,6 +35,8 @@
     "scripts": {
         "build": "tsc",
         "wle-aligner": "node dist/run_wle_aligner.js",
-        "build-and-run": "npm run build && npm run wle-aligner"
+        "wle-aligner-debug": "node --inspect-brk dist/run_wle_aligner.js",
+        "build-and-run": "npm run build && npm run wle-aligner",
+        "build-and-debug": "npm run build && npm run wle-aligner-debug"
     }
 }

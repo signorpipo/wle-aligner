@@ -13,15 +13,17 @@ module.exports = {
     globals: {
     },
     plugins: [
-        "deprecation"
+        "deprecation",
+        "@typescript-eslint"
     ],
     extends: [
-        "eslint:recommended"
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     rules: {
         "semi": "error",
-        "no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^__" }],
-        "deprecation/deprecation": "error"
+        "deprecation/deprecation": "error",
+        "@typescript-eslint/no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^a__" }]
     },
     ignorePatterns: [
         "/node_modules/",

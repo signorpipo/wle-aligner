@@ -23,17 +23,17 @@
         "webxr"
     ],
     "type": "module",
-    "main": "./dist/index.js",
-    "peerDependencies": {},
+    "main": "./dist/run_wle_aligner.js",
     "devDependencies": {
-        "@types/node": "^20.6.3",
-        "typescript": "^5.2.2",
+        "@types/node": "^20.10.5",
         "@typescript-eslint/parser": "^6.8.0",
         "eslint": "^8.51.0",
-        "eslint-plugin-deprecation": "^2.0.0"
+        "eslint-plugin-deprecation": "^2.0.0",
+        "typescript": "^5.2.2"
     },
     "scripts": {
         "build": "tsc",
-        "wle-aligner": "node dist/index.js"
+        "wle-aligner": "node dist/run_wle_aligner.js",
+        "build-and-run": "npm run build && npm run wle-aligner"
     }
 }

@@ -38,5 +38,8 @@
         "wle-aligner-debug": "node --inspect-brk dist/run_wle_aligner.js",
         "build-and-run": "npm run build && npm run wle-aligner",
         "build-and-debug": "npm run build && npm run wle-aligner-debug"
+    },
+    "dependencies": {
+        "@playkostudios/jsonc-ast": "^0.1.3"
     }
 }

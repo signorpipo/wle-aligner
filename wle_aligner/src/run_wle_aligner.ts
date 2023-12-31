@@ -1,3 +1,3 @@
-import { alignProject } from "./wle_aligner.js";
+import { wleAligner } from "./wle_aligner.js";
 
-await alignProject();
+await wleAligner();

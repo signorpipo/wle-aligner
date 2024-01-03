@@ -1,6 +1,6 @@
 export class ProcessReport {
-    editorBundleError: boolean = false;
-    editorCustomBundleError: boolean = false;
-    editorBundleIgnored: boolean = false;
+    myEditorBundleError: boolean = false;
+    myEditorCustomBundleError: boolean = false;
+    myEditorBundleIgnored: boolean = false;
 
 }

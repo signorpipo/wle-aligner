@@ -58,7 +58,7 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         try {
             editorBundleText = readFileSync(editorBundlePath, { encoding: "utf8" });
         } catch (error) {
-            processReport.editorBundleError = true;
+            processReport.myEditorBundleError = true;
             console.error("Could not read the editor bundle: " + editorBundlePath);
         }
     }
@@ -91,9 +91,9 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         console.error("Could not evaluate the editor bundle.");
 
         if (editorBundleText.length > 0) {
-            processReport.editorBundleError = true;
+            processReport.myEditorBundleError = true;
         } else if (editorCustomBundleText.length > 0) {
-            processReport.editorCustomBundleError = true;
+            processReport.myEditorCustomBundleError = true;
         }
 
         if (!ignoreEditorBundle && editorBundleText.length > 0 && editorCustomBundleText.length > 0) {
@@ -101,7 +101,7 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
 
             componentDefinitions = parseEditorBundle(rootDirPath, processReport, true);
         } else {
-            processReport.editorBundleIgnored = true;
+            processReport.myEditorBundleIgnored = true;
 
             componentDefinitions = new Map<string, ModifiedComponentPropertyRecord>();
         }

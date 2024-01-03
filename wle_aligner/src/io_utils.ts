@@ -1,9 +1,9 @@
-import { readFile, writeFile } from "fs/promises";
+import { readFileSync, writeFileSync } from "fs";
 
-export async function readProjectFile(filePath: string): Promise<string> {
-    return await readFile(filePath, 'utf8');
+export function readProjectFile(filePath: string): string {
+    return readFileSync(filePath, 'utf8');
 }
 
-export async function writeProjectFile(filePath: string, data: string): Promise<void> {
-    return await writeFile(filePath, data);
+export function writeProjectFile(filePath: string, data: string): void {
+    return writeFileSync(filePath, data);
 }

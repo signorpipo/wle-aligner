@@ -46,10 +46,10 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
     const isolate = new ivm.Isolate({ memoryLimit: 128 });
     const context = isolate.createContextSync();
     const jail = context.global;
-    let components = new Map<string, ModifiedComponentPropertyRecord>();
+    let componentDefinitions = new Map<string, ModifiedComponentPropertyRecord>();
 
     jail.setSync("__marshalled__registerEditor", function (typeName: string, properties: ModifiedComponentPropertyRecord) {
-        components.set(typeName, properties);
+        componentDefinitions.set(typeName, properties);
     });
 
     let editorBundleText = "";
@@ -99,13 +99,13 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         if (!ignoreEditorBundle && editorBundleText.length > 0 && editorCustomBundleText.length > 0) {
             console.error("Trying again with the custom bundle only.");
 
-            components = parseEditorBundle(rootDirPath, processReport, true);
+            componentDefinitions = parseEditorBundle(rootDirPath, processReport, true);
         } else {
             processReport.editorBundleIgnored = true;
 
-            components = new Map<string, ModifiedComponentPropertyRecord>();
+            componentDefinitions = new Map<string, ModifiedComponentPropertyRecord>();
         }
     }
 
-    return components;
+    return componentDefinitions;
 }

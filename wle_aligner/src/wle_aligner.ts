@@ -3,7 +3,7 @@ import { alignProject } from "./align_project.js";
 import { PROCESS_OPTIONS, extractProcessOptions, extractProcessSourceProjectPath, extractProcessTargetProjectPaths } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
 import { switchToUUID } from "./switch_to_uuid.js";
-import { getProjectComponentsDefinitions } from "./bundle_utils/component_utils.js";
+import { getProjectComponentsDefinitions } from "./bundle/component_utils.js";
 
 export function wleAligner() {
     // eslint-disable-next-line no-undef

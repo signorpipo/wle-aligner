@@ -1,5 +1,5 @@
 import path from "path";
-import { ModifiedComponentPropertyRecord } from "./bundle_utils/modified_component_property.js";
+import { ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
 import { readProjectFile, writeProjectFile } from "./io_utils.js";
 import { ProcessReport } from "./process_report.js";

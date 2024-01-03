@@ -97,7 +97,7 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         }
 
         if (!ignoreEditorBundle && editorBundleText.length > 0 && editorCustomBundleText.length > 0) {
-            console.error("Trying again with the custom bundle only.");
+            console.error("Trying again with the custom bundle only");
 
             componentDefinitions = parseEditorBundle(rootDirPath, processReport, true);
         } else {

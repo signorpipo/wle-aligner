@@ -1,5 +1,5 @@
 import path from "path";
-import { PROCESS_OPTIONS } from "./extract_process_arguments.js";
+import { PROCESS_OPTIONS } from "./process_options.js";
 import { readProjectFile, writeProjectFile } from "./io_utils.js";
 
 export function alignProject(sourceProjectPath: string, targetProjectPath: string, options: PROCESS_OPTIONS[]) {

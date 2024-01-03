@@ -1,6 +1,9 @@
+import path from "path";
 import { alignProject } from "./align_project.js";
-import { PROCESS_OPTIONS, extractProcessOptions, extractProcessSourceProjectPath, extractProcessTargetProjectPaths } from "./extract_process_arguments.js";
+import { PROCESS_OPTIONS, extractProcessOptions, extractProcessSourceProjectPath, extractProcessTargetProjectPaths } from "./process_options.js";
+import { ProcessReport } from "./process_report.js";
 import { switchToUUID } from "./switch_to_uuid.js";
+import { getProjectComponentsDefinitions } from "./bundle_utils/component_utils.js";
 
 export function wleAligner() {
     // eslint-disable-next-line no-undef
@@ -10,11 +13,23 @@ export function wleAligner() {
     const sourceProjectPath = extractProcessSourceProjectPath(processArguments);
     const targetProjectPaths = extractProcessTargetProjectPaths(processArguments);
 
-    if (options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
-        switchToUUID(sourceProjectPath, options);
+    const processReport = new ProcessReport();
+
+    const rootDirPath = path.dirname(sourceProjectPath);
+    const projectComponentDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
+
+    console.error(projectComponentDefinitions);
+    console.error(processReport);
+
+    if ((processReport.editorBundleError || processReport.editorCustomBundleError) && options.indexOf(PROCESS_OPTIONS.FAIL_ON_BUNDLE_FAILURE) >= 0) {
+        console.error("Abort process due to editor bundle failure");
     } else {
-        for (const targetProjectPath of targetProjectPaths) {
-            alignProject(sourceProjectPath, targetProjectPath, options);
+        if (options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
+            switchToUUID(sourceProjectPath, projectComponentDefinitions, options, processReport);
+        } else {
+            for (const targetProjectPath of targetProjectPaths) {
+                alignProject(sourceProjectPath, targetProjectPath, options);
+            }
         }
     }
 

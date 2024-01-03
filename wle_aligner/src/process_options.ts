@@ -1,5 +1,6 @@
 export enum PROCESS_OPTIONS {
-    SWITCH_TO_UUID = 0
+    SWITCH_TO_UUID = 0,
+    FAIL_ON_BUNDLE_FAILURE = 1
 }
 
 export function extractProcessOptions(processArguments: string[]): PROCESS_OPTIONS[] {
@@ -12,6 +13,10 @@ export function extractProcessOptions(processArguments: string[]): PROCESS_OPTIO
             case "--uuid":
             case "-u":
                 options.push(PROCESS_OPTIONS.SWITCH_TO_UUID);
+                break;
+            case "--fail-bundle-failure":
+            case "-fbf":
+                options.push(PROCESS_OPTIONS.FAIL_ON_BUNDLE_FAILURE);
                 break;
         }
     }

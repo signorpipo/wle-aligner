@@ -23,7 +23,7 @@ module.exports = {
     rules: {
         "semi": "error",
         "deprecation/deprecation": "error",
-        "@typescript-eslint/no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^a__" }]
+        "@typescript-eslint/no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^__" }]
     },
     ignorePatterns: [
         "/node_modules/",

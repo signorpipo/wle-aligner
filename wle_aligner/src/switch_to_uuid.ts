@@ -17,7 +17,6 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
     debugger;
 
-
     // change "editor": {        "ids": "uuid",
     replaceParentTokenKey("18", "ciao", sourceProject.myObjects);
 
@@ -32,11 +31,41 @@ function _getIDTokens(project: Project, projectComponentDefinitions: Map<string,
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
+    idTokens.push(..._getIDTokensFromMaterials(project, options));
     idTokens.push(..._getIDTokensFromSkins(project, options));
     idTokens.push(..._getIDTokensFromPipelines(project, options));
     idTokens.push(..._getIDTokensFromSettings(project, options));
 
-    // materials: pipeline / ObjectToken -> Every String Token tipo diffuseTexture
+    return idTokens;
+}
+
+function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
+
+    for (const [__materialID, materialTokenToCheck] of project.myMaterials.getTokenEntries()) {
+        const materialToken = ObjectToken.assert(materialTokenToCheck);
+
+        const pipelineTokenToCheck = materialToken.maybeGetValueTokenOfKey("pipeline");
+        if (pipelineTokenToCheck) {
+            if (pipelineTokenToCheck.type === JSONTokenType.String) {
+                idTokens.push(new ParentChildTokenPair(materialToken, StringToken.assert(pipelineTokenToCheck)));
+            }
+        }
+
+        for (const [__materialPropertyID, materialPropertyTokenToCheck] of materialToken.getTokenEntries()) {
+            if (materialPropertyTokenToCheck.type == JSONTokenType.Object) {
+                const materialPropertyToken = ObjectToken.assert(materialPropertyTokenToCheck);
+                for (const [__materialPropertyPropertyID, materialPropertyPropertyTokenToCheck] of materialPropertyToken.getTokenEntries()) {
+                    if (materialPropertyPropertyTokenToCheck.type == JSONTokenType.String) {
+                        const materialPropertyPropertyValue = StringToken.assert(materialPropertyPropertyTokenToCheck).evaluate();
+                        if (parseInt(materialPropertyPropertyValue).toFixed(0) == materialPropertyPropertyValue) {
+                            idTokens.push(new ParentChildTokenPair(materialPropertyToken, StringToken.assert(materialPropertyPropertyTokenToCheck)));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     return idTokens;
 }

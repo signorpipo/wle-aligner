@@ -24,6 +24,8 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
 
 
+// PRIVATE
+
 class _ParentChildTokenPair {
     parent: JSONParentToken;
     child: JSONToken;
@@ -37,8 +39,21 @@ class _ParentChildTokenPair {
 function _getIDTokens(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): _ParentChildTokenPair[] {
     const idTokens: _ParentChildTokenPair[] = [];
 
+    idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
+
+    return idTokens;
+}
+
+function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): _ParentChildTokenPair[] {
+    const idTokens: _ParentChildTokenPair[] = [];
+
     for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
         const objectToken = ObjectToken.assert(objectTokenToCheck);
+
+        const parentTokenToCheck = objectToken.maybeGetValueTokenOfKey("parent");
+        if (parentTokenToCheck) {
+            idTokens.push(new _ParentChildTokenPair(objectToken, StringToken.assert(parentTokenToCheck)));
+        }
 
         const componentsTokenToCheck = objectToken.maybeGetValueTokenOfKey("components");
         if (componentsTokenToCheck) {

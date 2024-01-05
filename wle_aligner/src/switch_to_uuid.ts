@@ -1,12 +1,12 @@
 // #CREDITS https://github.com/playkostudios/wle-cleaner
 
-import { ArrayToken, JSONParentToken, JSONToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
+import { ArrayToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import { Type } from "@wonderlandengine/api";
 import { customPhysxMeshOptsType } from "./bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
-import { replaceParentTokenKey } from "./project/jsonast_utils.js";
+import { ParentChildTokenPair, replaceParentTokenKey } from "./project/jsonast_utils.js";
 import { Project } from "./project/project.js";
 
 export async function switchToUUID(sourceProjectPath: string, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
@@ -17,6 +17,8 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
     debugger;
 
+
+    // change "editor": {        "ids": "uuid",
     replaceParentTokenKey("18", "ciao", sourceProject.myObjects);
 
     sourceProject.save("uuid");
@@ -26,33 +28,48 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
 // PRIVATE
 
-class _ParentChildTokenPair {
-    parent: JSONParentToken;
-    child: JSONToken;
-
-    constructor(parent: JSONParentToken, child: JSONToken) {
-        this.parent = parent;
-        this.child = child;
-    }
-}
-
-function _getIDTokens(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): _ParentChildTokenPair[] {
-    const idTokens: _ParentChildTokenPair[] = [];
+function _getIDTokens(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
+    idTokens.push(..._getIDTokensFromPipelines(project, projectComponentDefinitions, options));
+
+    // materials: pipeline / ObjectToken -> Every String Token tipo diffuseTexture
+    // settings: viewObject / leftEyeObject / appIcon / material
+    // skins / joints
+    // pipeline / "shader"
 
     return idTokens;
 }
 
-function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): _ParentChildTokenPair[] {
-    const idTokens: _ParentChildTokenPair[] = [];
+function _getIDTokensFromPipelines(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
+
+    for (const [__pipelineID, pipelineTokenToCheck] of project.myPipelines.getTokenEntries()) {
+        const pipelineToken = ObjectToken.assert(pipelineTokenToCheck);
+
+        const shaderTokenToCheck = pipelineToken.maybeGetValueTokenOfKey("shader");
+        if (shaderTokenToCheck) {
+            if (shaderTokenToCheck.type === JSONTokenType.String) {
+                idTokens.push(new ParentChildTokenPair(pipelineToken, StringToken.assert(shaderTokenToCheck)));
+            }
+        }
+    }
+
+    return idTokens;
+}
+
+function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
         const objectToken = ObjectToken.assert(objectTokenToCheck);
 
         const parentTokenToCheck = objectToken.maybeGetValueTokenOfKey("parent");
         if (parentTokenToCheck) {
-            idTokens.push(new _ParentChildTokenPair(objectToken, StringToken.assert(parentTokenToCheck)));
+            if (parentTokenToCheck.type === JSONTokenType.String) {
+                idTokens.push(new ParentChildTokenPair(objectToken, StringToken.assert(parentTokenToCheck)));
+            }
         }
 
         const componentsTokenToCheck = objectToken.maybeGetValueTokenOfKey("components");
@@ -75,12 +92,12 @@ function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: 
                         const componentPropertiesToken = ObjectToken.assert(componentPropertiesTokenToCheck);
                         for (const [propertyKey, propertyValueTokenToCheck] of componentPropertiesToken.getTokenEntries()) {
                             if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
-                                idTokens.push(new _ParentChildTokenPair(componentPropertiesToken, propertyValueTokenToCheck));
+                                idTokens.push(new ParentChildTokenPair(componentPropertiesToken, propertyValueTokenToCheck));
                             } else if (_isPhysXMeshToken(componentTypeToken, propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
                                 const objectPropertyValue = ObjectToken.assert(propertyValueTokenToCheck);
                                 const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                                 if (meshPropertyValueTokenToCheck) {
-                                    idTokens.push(new _ParentChildTokenPair(objectPropertyValue, StringToken.assert(meshPropertyValueTokenToCheck)));
+                                    idTokens.push(new ParentChildTokenPair(objectPropertyValue, StringToken.assert(meshPropertyValueTokenToCheck)));
                                 }
                             }
                         }

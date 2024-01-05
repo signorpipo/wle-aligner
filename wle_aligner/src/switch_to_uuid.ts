@@ -32,12 +32,34 @@ function _getIDTokens(project: Project, projectComponentDefinitions: Map<string,
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
+    idTokens.push(..._getIDTokensFromSkins(project, projectComponentDefinitions, options));
     idTokens.push(..._getIDTokensFromPipelines(project, projectComponentDefinitions, options));
 
     // materials: pipeline / ObjectToken -> Every String Token tipo diffuseTexture
     // settings: viewObject / leftEyeObject / appIcon / material
-    // skins / joints
-    // pipeline / "shader"
+
+    return idTokens;
+}
+
+function _getIDTokensFromSkins(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
+
+    for (const [__skinID, skinTokenToCheck] of project.mySkins.getTokenEntries()) {
+        const skinToken = ObjectToken.assert(skinTokenToCheck);
+
+        const jointsTokenToCheck = skinToken.maybeGetValueTokenOfKey("joints");
+        if (jointsTokenToCheck) {
+            if (jointsTokenToCheck.type === JSONTokenType.Array) {
+                const jointsToken = ArrayToken.assert(jointsTokenToCheck);
+                const jointIDTokensToCheck = jointsToken.getTokenEntries();
+                for (const jointIDTokenToCheck of jointIDTokensToCheck) {
+                    if (jointIDTokenToCheck.type == JSONTokenType.String) {
+                        idTokens.push(new ParentChildTokenPair(jointsToken, StringToken.assert(jointIDTokenToCheck)));
+                    }
+                }
+            }
+        }
+    }
 
     return idTokens;
 }
@@ -77,8 +99,9 @@ function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: 
             const componentsToken = ArrayToken.assert(componentsTokenToCheck);
             const components = componentsToken.getTokenEntries();
             for (const componentTokenToCheck of components) {
+                if (componentTokenToCheck.type !== JSONTokenType.Object) continue;
+
                 const componentToken = ObjectToken.assert(componentTokenToCheck);
-                if (!componentToken) continue;
 
                 const componentTypeTokenToCheck = componentToken.maybeGetValueTokenOfKey("type");
                 if (!componentTypeTokenToCheck) continue;

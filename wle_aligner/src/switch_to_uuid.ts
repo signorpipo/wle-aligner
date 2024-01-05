@@ -6,7 +6,7 @@ import { customPhysxMeshOptsType } from "./bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
-import { ParentChildTokenPair, replaceParentTokenKey } from "./project/jsonast_utils.js";
+import { ParentChildTokenPair, getJSONTokensByKeyByTypeHierarchy, replaceParentTokenKey } from "./project/jsonast_utils.js";
 import { Project } from "./project/project.js";
 
 export async function switchToUUID(sourceProjectPath: string, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
@@ -32,16 +32,28 @@ function _getIDTokens(project: Project, projectComponentDefinitions: Map<string,
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
-    idTokens.push(..._getIDTokensFromSkins(project, projectComponentDefinitions, options));
-    idTokens.push(..._getIDTokensFromPipelines(project, projectComponentDefinitions, options));
+    idTokens.push(..._getIDTokensFromSkins(project, options));
+    idTokens.push(..._getIDTokensFromPipelines(project, options));
+    idTokens.push(..._getIDTokensFromSettings(project, options));
 
     // materials: pipeline / ObjectToken -> Every String Token tipo diffuseTexture
-    // settings: viewObject / leftEyeObject / appIcon / material
 
     return idTokens;
 }
 
-function _getIDTokensFromSkins(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromSettings(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+    const idTokens: ParentChildTokenPair[] = [];
+
+    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("viewObject", JSONTokenType.String, project.mySettings));
+    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("leftEyeObject", JSONTokenType.String, project.mySettings));
+    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("rightEyeObject", JSONTokenType.String, project.mySettings));
+    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("appIcon", JSONTokenType.String, project.mySettings));
+    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("material", JSONTokenType.String, project.mySettings));
+
+    return idTokens;
+}
+
+function _getIDTokensFromSkins(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__skinID, skinTokenToCheck] of project.mySkins.getTokenEntries()) {
@@ -64,7 +76,7 @@ function _getIDTokensFromSkins(project: Project, projectComponentDefinitions: Ma
     return idTokens;
 }
 
-function _getIDTokensFromPipelines(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromPipelines(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__pipelineID, pipelineTokenToCheck] of project.myPipelines.getTokenEntries()) {

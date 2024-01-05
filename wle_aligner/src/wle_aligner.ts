@@ -18,9 +18,6 @@ export async function wleAligner() {
     const rootDirPath = path.dirname(sourceProjectPath);
     const projectComponentDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
 
-    console.error(projectComponentDefinitions);
-    console.error(processReport);
-
     if ((processReport.myEditorBundleError || processReport.myEditorCustomBundleError) && options.indexOf(PROCESS_OPTIONS.FAIL_ON_BUNDLE_FAILURE) >= 0) {
         console.error("Abort process due to editor bundle failure");
     } else {

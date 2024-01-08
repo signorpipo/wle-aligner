@@ -22,6 +22,10 @@
         "wle",
         "webxr"
     ],
+    "bin": {
+        "wle-aligner": "dist/run_wle_aligner.js",
+        "wle-uuidify": "dist/run_wle_uuidify.js"
+    },
     "type": "module",
     "main": "./dist/run_wle_aligner.js",
     "dependencies": {

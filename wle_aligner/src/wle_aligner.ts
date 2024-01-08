@@ -5,7 +5,7 @@ import { ProcessReport } from "./process_report.js";
 import { switchToUUID } from "./switch_to_uuid.js";
 import { getProjectComponentsDefinitions } from "./bundle/component_utils.js";
 
-export async function wleAligner() {
+export async function wleAligner(uuidify: boolean = false) {
     // eslint-disable-next-line no-undef
     const processArguments = process.argv;
 
@@ -22,7 +22,7 @@ export async function wleAligner() {
         console.error("Abort process due to editor bundle failure");
         console.error("Use -r risky flag to ignore this error and proceed");
     } else {
-        if (options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
+        if (uuidify || options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
             await switchToUUID(sourceProjectPath, projectComponentDefinitions, options, processReport);
         } else {
             for (const targetProjectPath of targetProjectPaths) {

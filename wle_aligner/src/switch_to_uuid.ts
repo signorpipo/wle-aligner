@@ -2,6 +2,7 @@
 
 import { ArrayToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import { Type } from "@wonderlandengine/api";
+import crypto from "crypto";
 import { customPhysxMeshOptsType } from "./bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
@@ -15,10 +16,18 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
     const idTokens = _getIDTokens(sourceProject, projectComponentDefinitions, options);
 
-    debugger;
-
-    // change "editor": {        "ids": "uuid",
-    replaceParentTokenKey("18", "ciao", sourceProject.myObjects);
+    for (const [id, __tokenToCheck] of sourceProject.myObjects.getTokenEntries()) {
+        if (_isIncrementalNumberID(id)) {
+            const uuid = _randomUUID();
+            replaceParentTokenKey(id, uuid, sourceProject.myObjects);
+            for (const idTokenToReplace of idTokens) {
+                const childID = StringToken.assert(idTokenToReplace.child).evaluate();
+                if (childID == id) {
+                    idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
+                }
+            }
+        }
+    }
 
     sourceProject.save("uuid");
 }
@@ -58,7 +67,7 @@ function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[])
                 for (const [__materialPropertyPropertyID, materialPropertyPropertyTokenToCheck] of materialPropertyToken.getTokenEntries()) {
                     if (materialPropertyPropertyTokenToCheck.type == JSONTokenType.String) {
                         const materialPropertyPropertyValue = StringToken.assert(materialPropertyPropertyTokenToCheck).evaluate();
-                        if (parseInt(materialPropertyPropertyValue).toFixed(0) == materialPropertyPropertyValue) {
+                        if (_isIncrementalNumberID(materialPropertyPropertyValue)) {
                             idTokens.push(new ParentChildTokenPair(materialPropertyToken, StringToken.assert(materialPropertyPropertyTokenToCheck)));
                         }
                     }
@@ -244,3 +253,28 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
 
     return isPhysXMesh;
 }
+
+function _isIncrementalNumberID(id: string): boolean {
+    return parseInt(id).toFixed(0) == id;
+}
+
+const _randomUUID = function () {
+    const uuidRandomValues = new Uint8Array(1);
+    const uuidSkeleton = (1e7 + "-" + 1e3 + "-" + 4e3 + "-" + 8e3 + "-" + 1e11);
+    const replaceUUIDSkeletonRegex = new RegExp("[018]", "g");
+    const replaceUUIDSkeletonCallback = function (charString: string): string {
+        const digit = parseInt(charString.charAt(0));
+        return (digit ^ ((crypto.getRandomValues(uuidRandomValues)[0] & 15)) >> (digit / 4)).toString(16);
+    };
+    return function _randomUUID(): string {
+        let uuid = "";
+
+        if (crypto.randomUUID != null) {
+            uuid = crypto.randomUUID();
+        } else {
+            uuid = uuidSkeleton.replace(replaceUUIDSkeletonRegex, replaceUUIDSkeletonCallback);
+        }
+
+        return uuid;
+    };
+}();

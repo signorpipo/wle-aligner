@@ -16,14 +16,14 @@ export async function wleAligner(uuidify: boolean = false) {
     const processReport = new ProcessReport();
 
     const rootDirPath = path.dirname(sourceProjectPath);
-    const projectComponentDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
+    const projectComponentsDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
 
     if ((processReport.myEditorBundleError || processReport.myEditorCustomBundleError) && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
         console.error("Abort process due to editor bundle failure");
         console.error("Use -r risky flag to ignore this error and proceed");
     } else {
         if (uuidify || options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
-            await switchToUUID(sourceProjectPath, projectComponentDefinitions, options, processReport);
+            await switchToUUID(sourceProjectPath, projectComponentsDefinitions, options, processReport);
 
             console.log("Process Completed");
 

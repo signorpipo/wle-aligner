@@ -10,11 +10,11 @@ import { ProcessReport } from "./process_report.js";
 import { ParentChildTokenPair, getJSONTokensByKeyByTypeHierarchy, replaceParentTokenKey } from "./project/jsonast_utils.js";
 import { Project } from "./project/project.js";
 
-export async function switchToUUID(sourceProjectPath: string, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
+export async function switchToUUID(sourceProjectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
     const sourceProject = new Project();
     await sourceProject.load(sourceProjectPath);
 
-    const idTokens = _getIDTokens(sourceProject, projectComponentDefinitions, options);
+    const idTokens = _getIDTokens(sourceProject, projectComponentsDefinitions, options);
 
     _switchTokenToUUID(sourceProject.myObjects, idTokens, processReport);
     _switchTokenToUUID(sourceProject.myMeshes, idTokens, processReport);
@@ -36,10 +36,10 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
 // PRIVATE
 
-function _getIDTokens(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    idTokens.push(..._getIDTokensFromObjects(project, projectComponentDefinitions, options));
+    idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, options));
     idTokens.push(..._getIDTokensFromMaterials(project, options));
     idTokens.push(..._getIDTokensFromSkins(project, options));
     idTokens.push(..._getIDTokensFromPipelines(project, options));
@@ -131,7 +131,7 @@ function _getIDTokensFromPipelines(project: Project, options: PROCESS_OPTIONS[])
     return idTokens;
 }
 
-function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
@@ -154,7 +154,7 @@ function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: 
                 const componentToken = ObjectToken.assert(componentTokenToCheck);
                 for (const [componentKey, componentPropertiesTokenToCheck] of componentToken.getTokenEntries()) {
                     if (componentPropertiesTokenToCheck.type == JSONTokenType.Object) {
-                        const componentProperties = projectComponentDefinitions.get(componentKey);
+                        const componentProperties = projectComponentsDefinitions.get(componentKey);
                         if (!componentProperties && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) continue;
 
                         const componentPropertiesToken = ObjectToken.assert(componentPropertiesTokenToCheck);

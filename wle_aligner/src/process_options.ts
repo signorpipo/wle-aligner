@@ -1,6 +1,7 @@
 export enum PROCESS_OPTIONS {
     SWITCH_TO_UUID = 0,
-    RISKY = 1
+    RISKY = 1,
+    OVERWRITE = 2
 }
 
 export function extractProcessOptions(processArguments: string[]): PROCESS_OPTIONS[] {

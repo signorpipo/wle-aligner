@@ -14,10 +14,10 @@ export const customPhysxMeshOptsType = Symbol("physx-mesh-options");
 export const customOpaqueColorType = Symbol("opaque-color");
 
 export function getProjectComponentsDefinitions(rootDirPath: string, processReport: ProcessReport): Map<string, ModifiedComponentPropertyRecord> {
-    const componentDefinitions = parseEditorBundle(rootDirPath, processReport);
+    const componentsDefinitions = parseEditorBundle(rootDirPath, processReport);
 
     // Normalize default values of components and panic on unexpected properties
-    for (const [compType, compConfig] of componentDefinitions) {
+    for (const [compType, compConfig] of componentsDefinitions) {
         if (NATIVE_COMPONENTS.includes(compType)) {
             throw new Error("Unexpected component with native name " + compType + " in editor bundle");
         }
@@ -40,7 +40,7 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
     // Add native components to bundle components. note that we can't automate
     // this because the properties of native components are defined with the
     // "Native" type, instead of a concrete type like "Int" or "Bool"
-    componentDefinitions.set("animation", {
+    componentsDefinitions.set("animation", {
         animation: { type: Type.Animation, default: null },
         playCount: { type: Type.Int, default: 0 },
         speed: { type: Type.Float, default: 1 },
@@ -52,7 +52,7 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
     // #WARN @CollisionComponents also work like component properties; they have
     // a sphere property which is an object with a radius, an aabb and a box
     // property which is an object with extents
-    componentDefinitions.set("collision", {
+    componentsDefinitions.set("collision", {
         groups: { type: Type.Int, default: 255 },
         collider: { type: Type.Enum, default: "sphere", values: ["sphere", "aabb", "box"] },
         sphere: { type: customCollisionRadiusOptsType, default: 1 },
@@ -60,11 +60,11 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
         box: { type: customCollisionExtentsOptsType, default: [1, 1, 1] },
     });
 
-    componentDefinitions.set("input", {
+    componentsDefinitions.set("input", {
         type: { type: Type.Enum, default: "head", values: ["head", "eye left", "eye right", "hand left", "hand right", "ray left", "ray right"] },
     });
 
-    componentDefinitions.set("light", {
+    componentsDefinitions.set("light", {
         type: { type: Type.Enum, default: "point", values: ["point", "spot", "sun"] },
         color: { type: customOpaqueColorType, default: [1, 1, 1] },
         intensity: { type: Type.Float, default: 1 },
@@ -77,13 +77,13 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
         shadowTexelSize: { type: Type.Float, default: 1 },
     });
 
-    componentDefinitions.set("mesh", {
+    componentsDefinitions.set("mesh", {
         mesh: { type: Type.Mesh, default: null },
         material: { type: Type.Material, default: null },
         skin: { type: Type.Skin, default: null },
     });
 
-    componentDefinitions.set("physx", {
+    componentsDefinitions.set("physx", {
         shape: { type: Type.Enum, default: "sphere", values: ["none", "sphere", "capsule", "box", "plane", "convexMesh", "triangleMesh"] },
         sphere: { type: customCollisionRadiusOptsType, default: 0.25 },
         capsule: { type: customPhysxCapsuleOptsType, default: { radius: 0.15, halfHeight: 0.25 } },
@@ -110,7 +110,7 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
         solverVelocityIterations: { type: Type.Int, default: 1 },
     });
 
-    componentDefinitions.set("text", {
+    componentsDefinitions.set("text", {
         alignment: { type: Type.Enum, default: "center", values: ["left", "center", "right"] },
         justification: { type: Type.Enum, default: "middle", values: ["line", "middle", "top", "bottom"] },
         characterSpacing: { type: Type.Float, default: 0 },
@@ -120,11 +120,11 @@ export function getProjectComponentsDefinitions(rootDirPath: string, processRepo
         material: { type: Type.Material }, // #WARN No default, can't be auto-cleaned
     });
 
-    componentDefinitions.set("view", {
+    componentsDefinitions.set("view", {
         fov: { type: Type.Float, default: 90 },
         near: { type: Type.Float, default: 0.01 },
         far: { type: Type.Float, default: 100 },
     });
 
-    return componentDefinitions;
+    return componentsDefinitions;
 }

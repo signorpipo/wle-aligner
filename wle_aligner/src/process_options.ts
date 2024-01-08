@@ -10,8 +10,8 @@ export function extractProcessOptions(processArguments: string[]): PROCESS_OPTIO
         const processArgument = processArguments[i];
 
         switch (processArgument) {
-            case "--uuid":
-            case "-u":
+            case "--switch-uuid":
+            case "-su":
                 options.push(PROCESS_OPTIONS.SWITCH_TO_UUID);
                 break;
             case "--risky":

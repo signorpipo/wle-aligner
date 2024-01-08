@@ -24,6 +24,25 @@ export async function wleAligner(uuidify: boolean = false) {
     } else {
         if (uuidify || options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
             await switchToUUID(sourceProjectPath, projectComponentDefinitions, options, processReport);
+
+            console.log("Process Completed");
+
+            if (processReport.myEditorBundleIgnored) {
+                console.log("- editor bundle has been ignored, some properties might have been changed even though they were not an ID");
+            } else {
+                if (processReport.myEditorBundleError) {
+                    console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
+                } else if (processReport.myEditorCustomBundleError) {
+                    console.log("- editor cistom bundle errors have been occurred, some properties might have been changed even though they were not an ID");
+                }
+            }
+
+            if (processReport.myDuplicatedIDs.length > 0) {
+                console.log("- duplicated ID have been found on different resources, please check these IDs and manually adjust them");
+                for (const duplicatedID of processReport.myDuplicatedIDs) {
+                    console.log("    - " + duplicatedID);
+                }
+            }
         } else {
             for (const targetProjectPath of targetProjectPaths) {
                 alignProject(sourceProjectPath, targetProjectPath, options);

@@ -16,18 +16,18 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentDe
 
     const idTokens = _getIDTokens(sourceProject, projectComponentDefinitions, options);
 
-    for (const [id, __tokenToCheck] of sourceProject.myObjects.getTokenEntries()) {
-        if (_isIncrementalNumberID(id)) {
-            const uuid = _randomUUID();
-            replaceParentTokenKey(id, uuid, sourceProject.myObjects);
-            for (const idTokenToReplace of idTokens) {
-                const childID = StringToken.assert(idTokenToReplace.child).evaluate();
-                if (childID == id) {
-                    idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
-                }
-            }
-        }
-    }
+    _switchTokenToUUID(sourceProject.myObjects, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myMeshes, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myTextures, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myImages, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myMaterials, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myShaders, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myAnimations, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.mySkins, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myPipelines, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myFiles, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myFonts, idTokens, processReport);
+    _switchTokenToUUID(sourceProject.myLanguages, idTokens, processReport);
 
     sourceProject.save("uuid");
 }
@@ -152,21 +152,16 @@ function _getIDTokensFromObjects(project: Project, projectComponentDefinitions: 
                 if (componentTokenToCheck.type !== JSONTokenType.Object) continue;
 
                 const componentToken = ObjectToken.assert(componentTokenToCheck);
-
-                const componentTypeTokenToCheck = componentToken.maybeGetValueTokenOfKey("type");
-                if (!componentTypeTokenToCheck) continue;
-
-                const componentTypeToken = StringToken.assert(componentTypeTokenToCheck).evaluate();
-                const componentProperties = projectComponentDefinitions.get(componentTypeToken);
-                if (!componentProperties && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) continue;
-
                 for (const [componentKey, componentPropertiesTokenToCheck] of componentToken.getTokenEntries()) {
-                    if (componentKey === componentTypeToken) {
+                    if (componentPropertiesTokenToCheck.type == JSONTokenType.Object) {
+                        const componentProperties = projectComponentDefinitions.get(componentKey);
+                        if (!componentProperties && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) continue;
+
                         const componentPropertiesToken = ObjectToken.assert(componentPropertiesTokenToCheck);
                         for (const [propertyKey, propertyValueTokenToCheck] of componentPropertiesToken.getTokenEntries()) {
                             if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
                                 idTokens.push(new ParentChildTokenPair(componentPropertiesToken, propertyValueTokenToCheck));
-                            } else if (_isPhysXMeshToken(componentTypeToken, propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
+                            } else if (_isPhysXMeshToken(componentKey, propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
                                 const objectPropertyValue = ObjectToken.assert(propertyValueTokenToCheck);
                                 const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                                 if (meshPropertyValueTokenToCheck) {
@@ -197,7 +192,7 @@ const _isPropertyValueTokenID = function () {
         if (!propertyDefinition) {
             if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
                 // If the risky flag is set and there is no definition, consider it as an ID
-                return propertyValueTokenToCheck.type === JSONTokenType.String;
+                return propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String;
             } else {
                 return false;
             }
@@ -278,3 +273,24 @@ const _randomUUID = function () {
         return uuid;
     };
 }();
+
+function _switchTokenToUUID(tokenToSwitch: ObjectToken, idTokens: ParentChildTokenPair[], processReport: ProcessReport) {
+    for (const [id, __tokenToCheck] of tokenToSwitch.getTokenEntries()) {
+        if (_isIncrementalNumberID(id)) {
+            const uuid = _randomUUID();
+            replaceParentTokenKey(id, uuid, tokenToSwitch);
+            for (const idTokenToReplace of idTokens) {
+                const childID = StringToken.assert(idTokenToReplace.child).evaluate();
+                if (childID == id) {
+                    try {
+                        idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
+                    } catch (error) {
+                        if (processReport.myDuplicatedIDs.indexOf(id) == -1) {
+                            processReport.myDuplicatedIDs.push(id);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

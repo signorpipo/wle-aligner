@@ -7,7 +7,7 @@ import { customPhysxMeshOptsType } from "./bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
-import { ParentChildTokenPair, getJSONTokensByKeyByTypeHierarchy, replaceParentTokenKey } from "./project/jsonast_utils.js";
+import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } from "./project/jsonast_utils.js";
 import { Project } from "./project/project.js";
 
 export async function switchToUUID(sourceProjectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
@@ -29,7 +29,11 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentsD
     _switchTokenToUUID(sourceProject.myFonts, idTokens, processReport);
     _switchTokenToUUID(sourceProject.myLanguages, idTokens, processReport);
 
-    sourceProject.save("uuid");
+    if (options.indexOf(PROCESS_OPTIONS.OVERWRITE) >= 0) {
+        sourceProject.save();
+    } else {
+        sourceProject.save("uuid");
+    }
 }
 
 
@@ -56,7 +60,7 @@ function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[])
 
         const pipelineTokenToCheck = materialToken.maybeGetValueTokenOfKey("pipeline");
         if (pipelineTokenToCheck) {
-            if (pipelineTokenToCheck.type === JSONTokenType.String) {
+            if (pipelineTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(pipelineTokenToCheck).evaluate())) {
                 idTokens.push(new ParentChildTokenPair(materialToken, StringToken.assert(pipelineTokenToCheck)));
             }
         }
@@ -65,11 +69,8 @@ function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[])
             if (materialPropertyTokenToCheck.type == JSONTokenType.Object) {
                 const materialPropertyToken = ObjectToken.assert(materialPropertyTokenToCheck);
                 for (const [__materialPropertyPropertyID, materialPropertyPropertyTokenToCheck] of materialPropertyToken.getTokenEntries()) {
-                    if (materialPropertyPropertyTokenToCheck.type == JSONTokenType.String) {
-                        const materialPropertyPropertyValue = StringToken.assert(materialPropertyPropertyTokenToCheck).evaluate();
-                        if (_isIncrementalNumberID(materialPropertyPropertyValue)) {
-                            idTokens.push(new ParentChildTokenPair(materialPropertyToken, StringToken.assert(materialPropertyPropertyTokenToCheck)));
-                        }
+                    if (materialPropertyPropertyTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(materialPropertyPropertyTokenToCheck).evaluate())) {
+                        idTokens.push(new ParentChildTokenPair(materialPropertyToken, StringToken.assert(materialPropertyPropertyTokenToCheck)));
                     }
                 }
             }
@@ -82,11 +83,21 @@ function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[])
 function _getIDTokensFromSettings(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("viewObject", JSONTokenType.String, project.mySettings));
-    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("leftEyeObject", JSONTokenType.String, project.mySettings));
-    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("rightEyeObject", JSONTokenType.String, project.mySettings));
-    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("appIcon", JSONTokenType.String, project.mySettings));
-    idTokens.push(...getJSONTokensByKeyByTypeHierarchy("material", JSONTokenType.String, project.mySettings));
+    idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
+        return tokenKey == "viewObject" && tokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(tokenToCheck).evaluate());
+    }, project.mySettings));
+    idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
+        return tokenKey == "leftEyeObject" && tokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(tokenToCheck).evaluate());
+    }, project.mySettings));
+    idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
+        return tokenKey == "rightEyeObject" && tokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(tokenToCheck).evaluate());
+    }, project.mySettings));
+    idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
+        return tokenKey == "appIcon" && tokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(tokenToCheck).evaluate());
+    }, project.mySettings));
+    idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
+        return tokenKey == "material" && tokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(tokenToCheck).evaluate());
+    }, project.mySettings));
 
     return idTokens;
 }
@@ -103,7 +114,7 @@ function _getIDTokensFromSkins(project: Project, options: PROCESS_OPTIONS[]): Pa
                 const jointsToken = ArrayToken.assert(jointsTokenToCheck);
                 const jointIDTokensToCheck = jointsToken.getTokenEntries();
                 for (const jointIDTokenToCheck of jointIDTokensToCheck) {
-                    if (jointIDTokenToCheck.type == JSONTokenType.String) {
+                    if (jointIDTokenToCheck.type == JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(jointIDTokenToCheck).evaluate())) {
                         idTokens.push(new ParentChildTokenPair(jointsToken, StringToken.assert(jointIDTokenToCheck)));
                     }
                 }
@@ -122,7 +133,7 @@ function _getIDTokensFromPipelines(project: Project, options: PROCESS_OPTIONS[])
 
         const shaderTokenToCheck = pipelineToken.maybeGetValueTokenOfKey("shader");
         if (shaderTokenToCheck) {
-            if (shaderTokenToCheck.type === JSONTokenType.String) {
+            if (shaderTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(shaderTokenToCheck).evaluate())) {
                 idTokens.push(new ParentChildTokenPair(pipelineToken, StringToken.assert(shaderTokenToCheck)));
             }
         }
@@ -139,7 +150,7 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
         const parentTokenToCheck = objectToken.maybeGetValueTokenOfKey("parent");
         if (parentTokenToCheck) {
-            if (parentTokenToCheck.type === JSONTokenType.String) {
+            if (parentTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(parentTokenToCheck).evaluate())) {
                 idTokens.push(new ParentChildTokenPair(objectToken, StringToken.assert(parentTokenToCheck)));
             }
         }
@@ -192,14 +203,14 @@ const _isPropertyValueTokenID = function () {
         if (!propertyDefinition) {
             if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
                 // If the risky flag is set and there is no definition, consider it as an ID
-                return propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String;
+                return propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
             } else {
                 return false;
             }
         }
 
         if (idTypes.indexOf(propertyDefinition.type) >= 0) {
-            isID = propertyValueTokenToCheck.type === JSONTokenType.String;
+            isID = propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
         }
 
         return isID;
@@ -224,7 +235,7 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
                         const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
                         const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                         if (meshPropertyValueTokenToCheck != null) {
-                            return meshPropertyValueTokenToCheck.type === JSONTokenType.String;
+                            return meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
                         }
                     }
                 }
@@ -241,7 +252,7 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
             const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
             const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
             if (meshPropertyValueTokenToCheck != null) {
-                isPhysXMesh = meshPropertyValueTokenToCheck.type === JSONTokenType.String;
+                isPhysXMesh = meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
             }
         }
     }

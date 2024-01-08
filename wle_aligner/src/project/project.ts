@@ -46,7 +46,10 @@ export class Project {
     }
 
     async save(filePrefix: string = "") {
-        const adjustedPath = path.join(path.dirname(this._myPath), filePrefix + "-" + path.basename(this._myPath));
+        let adjustedPath = this._myPath;
+        if (filePrefix.length > 0) {
+            adjustedPath = path.join(path.dirname(this._myPath), filePrefix + "-" + path.basename(this._myPath));
+        }
         await this._myJSONAST.writeToFile(adjustedPath);
     }
 }

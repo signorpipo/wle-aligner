@@ -1,4 +1,4 @@
-import { JSONParentToken, JSONToken, JSONTokenType, KeyToken, ObjectToken } from "@playkostudios/jsonc-ast";
+import { JSONParentToken, JSONToken, JSONTokenType, JSONValueToken, KeyToken, ObjectToken } from "@playkostudios/jsonc-ast";
 
 export class ParentChildTokenPair {
     parent: JSONParentToken;
@@ -25,6 +25,10 @@ export function replaceParentTokenKey(oldKey: string, newKey: string, parentToke
 }
 
 export function getJSONTokensByKeyByTypeHierarchy(tokenKeyToFind: string, tokenTypeToFind: JSONTokenType, parentObjectToken: ObjectToken): ParentChildTokenPair[] {
+    return getJSONTokensHierarchy((tokenKey: string, tokenToCheck: JSONValueToken) => tokenKey == tokenKeyToFind && tokenToCheck.type === tokenTypeToFind, parentObjectToken);
+}
+
+export function getJSONTokensHierarchy(findCallback: (tokenKey: string, tokenToCheck: JSONValueToken) => boolean, parentObjectToken: ObjectToken): ParentChildTokenPair[] {
     const jsonTokensByKey: ParentChildTokenPair[] = [];
 
     const parentObjectTokens = [parentObjectToken];
@@ -32,7 +36,7 @@ export function getJSONTokensByKeyByTypeHierarchy(tokenKeyToFind: string, tokenT
         const currentParentObjectToken = parentObjectTokens.shift();
         if (currentParentObjectToken) {
             for (const [tokenKey, tokenToCheck] of currentParentObjectToken.getTokenEntries()) {
-                if (tokenKey == tokenKeyToFind && tokenToCheck.type == tokenTypeToFind) {
+                if (findCallback(tokenKey, tokenToCheck)) {
                     jsonTokensByKey.push(new ParentChildTokenPair(currentParentObjectToken, tokenToCheck));
                 }
 

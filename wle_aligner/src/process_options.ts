@@ -19,6 +19,10 @@ export function extractProcessOptions(processArguments: string[]): PROCESS_OPTIO
             case "-r":
                 options.push(PROCESS_OPTIONS.RISKY);
                 break;
+            case "--overwrite":
+            case "-o":
+                options.push(PROCESS_OPTIONS.OVERWRITE);
+                break;
         }
     }
 

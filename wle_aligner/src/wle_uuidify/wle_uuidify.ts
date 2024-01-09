@@ -22,7 +22,7 @@ export async function wleUUIDify(uuidify: boolean = false) {
         const rootDirPath = path.dirname(projectPath);
         const projectComponentsDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
 
-        if ((processReport.myEditorBundleError || processReport.myEditorCustomBundleError) && processOptions.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
+        if ((processReport.myEditorBundleError || processReport.myEditorExtraBundleError) && processOptions.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
             console.error("");
             console.error("Abort process due to editor bundle failure");
             console.error("Use -r risky flag to ignore this error and proceed");
@@ -50,9 +50,9 @@ function _logSwitchToUUIDReport(processOptions: PROCESS_OPTIONS[], processReport
         if (processReport.myEditorBundleError) {
             console.error("");
             console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
-        } else if (processReport.myEditorCustomBundleError) {
+        } else if (processReport.myEditorExtraBundleError) {
             console.error("");
-            console.log("- editor custom bundle errors have been occurred, some properties might have been changed even though they were not an ID");
+            console.log("- editor extra bundle errors have been occurred, some properties might have been changed even though they were not an ID");
         }
     }
 

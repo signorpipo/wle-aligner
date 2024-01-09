@@ -63,15 +63,15 @@ export function parseEditorBundle(rootDirPath: string, bundleReport: BundleRepor
         }
     }
 
-    let editorCustomBundleText = "";
-    const editorCustomBundlePath = path.join(rootDirPath, "editor_custom_bundle.js");
+    let editorExtraBundleText = "";
+    const editorExtraBundlePath = path.join(rootDirPath, "editor_extra_bundle.js");
     try {
-        editorCustomBundleText = readFileSync(editorCustomBundlePath, { encoding: "utf8" });
+        editorExtraBundleText = readFileSync(editorExtraBundlePath, { encoding: "utf8" });
     } catch (error) {
         // Do nothing
     }
 
-    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorCustomBundleText}\n${editorBundleText}`;
+    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorExtraBundleText}\n${editorBundleText}`;
 
     try {
         const editorIndexModule = isolate.compileModuleSync(adjustedEditorBundleText);
@@ -88,16 +88,16 @@ export function parseEditorBundle(rootDirPath: string, bundleReport: BundleRepor
 
         console.error(error);
 
-        console.error("Could not evaluate the editor bundle.");
+        console.error("Could not evaluate the editor bundle");
 
         if (editorBundleText.length > 0) {
             bundleReport.myEditorBundleError = true;
-        } else if (editorCustomBundleText.length > 0) {
-            bundleReport.myEditorCustomBundleError = true;
+        } else if (editorExtraBundleText.length > 0) {
+            bundleReport.myEditorExtraBundleError = true;
         }
 
-        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorCustomBundleText.length > 0) {
-            console.error("Trying again with the custom bundle only");
+        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorExtraBundleText.length > 0) {
+            console.error("A second attempt will be performed using only the extra bundle and the bundle preamble");
 
             componentDefinitions = parseEditorBundle(rootDirPath, bundleReport, true);
         } else {

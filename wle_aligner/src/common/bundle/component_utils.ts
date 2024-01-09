@@ -1,9 +1,9 @@
 // #CREDITS https://github.com/playkostudios/wle-cleaner
 
 import { Type } from "@wonderlandengine/api";
+import { BundleReport } from "./bundle_report.js";
 import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
 import { parseEditorBundle } from "./parse_editor_bundle.js";
-import { BundleReport } from "./bundle_report.js";
 
 export const NATIVE_COMPONENTS = ["animation", "collision", "input", "light", "mesh", "physx", "text", "view"];
 

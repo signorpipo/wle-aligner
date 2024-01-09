@@ -2,9 +2,9 @@
 
 import { readFileSync } from "fs";
 import ivm from "isolated-vm";
-import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
 import path from "path";
 import { BundleReport } from "./bundle_report.js";
+import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
 
 const BUNDLE_PREAMBLE = `
 function _registerEditor(regExports) {

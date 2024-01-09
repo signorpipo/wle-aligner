@@ -211,26 +211,24 @@ const _isPropertyValueTokenID = function () {
         }
 
         if (!propertyDefinition) {
-            if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
-                // If the risky flag is set and there is no definition, consider it as an ID
-                isID = propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
+            const isRisky = options.indexOf(PROCESS_OPTIONS.RISKY) >= 0;
 
-                if (isID) {
-                    let componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
-                    if (componentPropertiesAsIDRisky == null) {
-                        processReport.myComponentsPropertiesAsIDRisky.set(componentType, []);
-                        componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
-                    }
+            isID = propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
 
-                    if (componentPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
-                        componentPropertiesAsIDRisky?.push(propertyKey);
-                    }
+            if (isID) {
+                let componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
+                if (componentPropertiesAsIDRisky == null) {
+                    processReport.myComponentsPropertiesAsIDRisky.set(componentType, []);
+                    componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
                 }
 
-                return isID;
-            } else {
-                return false;
+                if (componentPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
+                    componentPropertiesAsIDRisky?.push(propertyKey);
+                }
             }
+
+            // If the risky flag is set and there is no definition, consider it as an ID
+            return isID && isRisky;
         }
 
         if (idTypes.indexOf(propertyDefinition.type) >= 0) {
@@ -251,29 +249,28 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
     }
 
     if (!propertyDefinition) {
-        if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
-            if (componentTypeToken == "physx") {
-                if (propertyKey == "convexMesh" || propertyKey == "triangleMesh") {
-                    if (propertyValueTokenToCheck.type == JSONTokenType.Object) {
-                        const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
-                        const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
-                        if (meshPropertyValueTokenToCheck != null) {
-                            const isID = meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
+        if (componentTypeToken == "physx") {
+            if (propertyKey == "convexMesh" || propertyKey == "triangleMesh") {
+                if (propertyValueTokenToCheck.type == JSONTokenType.Object) {
+                    const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
+                    const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
+                    if (meshPropertyValueTokenToCheck != null) {
+                        const isRisky = options.indexOf(PROCESS_OPTIONS.RISKY) >= 0;
+                        const isID = meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
 
-                            if (isID) {
-                                let physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
-                                if (physxPropertiesAsIDRisky == null) {
-                                    processReport.myComponentsPropertiesAsIDRisky.set("physx", []);
-                                    physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
-                                }
-
-                                if (physxPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
-                                    physxPropertiesAsIDRisky?.push(propertyKey);
-                                }
+                        if (isID) {
+                            let physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
+                            if (physxPropertiesAsIDRisky == null) {
+                                processReport.myComponentsPropertiesAsIDRisky.set("physx", []);
+                                physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
                             }
 
-                            return isID;
+                            if (physxPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
+                                physxPropertiesAsIDRisky?.push(propertyKey);
+                            }
                         }
+
+                        return isID && isRisky;
                     }
                 }
             }

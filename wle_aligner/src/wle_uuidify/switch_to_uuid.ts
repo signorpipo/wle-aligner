@@ -3,36 +3,36 @@
 import { ArrayToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import { Type } from "@wonderlandengine/api";
 import crypto from "crypto";
-import { customPhysxMeshOptsType } from "./bundle/component_utils.js";
-import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "./bundle/modified_component_property.js";
+import { customPhysxMeshOptsType } from "../common/bundle/component_utils.js";
+import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
+import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
+import { Project } from "../common/project/project.js";
 import { PROCESS_OPTIONS } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
-import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } from "./project/jsonast_utils.js";
-import { Project } from "./project/project.js";
 
-export async function switchToUUID(sourceProjectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
-    const sourceProject = new Project();
-    await sourceProject.load(sourceProjectPath);
+export async function switchToUUID(projectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport) {
+    const project = new Project();
+    await project.load(projectPath);
 
-    const idTokens = _getIDTokens(sourceProject, projectComponentsDefinitions, options, processReport);
+    const idTokens = _getIDTokens(project, projectComponentsDefinitions, options, processReport);
 
-    _switchTokenToUUID(sourceProject.myObjects, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myMeshes, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myTextures, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myImages, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myMaterials, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myShaders, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myAnimations, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.mySkins, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myPipelines, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myFiles, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myFonts, idTokens, processReport);
-    _switchTokenToUUID(sourceProject.myLanguages, idTokens, processReport);
+    _switchTokenToUUID(project.myObjects, idTokens, processReport);
+    _switchTokenToUUID(project.myMeshes, idTokens, processReport);
+    _switchTokenToUUID(project.myTextures, idTokens, processReport);
+    _switchTokenToUUID(project.myImages, idTokens, processReport);
+    _switchTokenToUUID(project.myMaterials, idTokens, processReport);
+    _switchTokenToUUID(project.myShaders, idTokens, processReport);
+    _switchTokenToUUID(project.myAnimations, idTokens, processReport);
+    _switchTokenToUUID(project.mySkins, idTokens, processReport);
+    _switchTokenToUUID(project.myPipelines, idTokens, processReport);
+    _switchTokenToUUID(project.myFiles, idTokens, processReport);
+    _switchTokenToUUID(project.myFonts, idTokens, processReport);
+    _switchTokenToUUID(project.myLanguages, idTokens, processReport);
 
     if (options.indexOf(PROCESS_OPTIONS.OVERWRITE) >= 0) {
-        sourceProject.save();
+        project.save();
     } else {
-        sourceProject.save("uuid");
+        project.save("uuid");
     }
 }
 

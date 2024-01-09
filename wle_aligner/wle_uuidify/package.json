@@ -1,0 +1,52 @@
+{
+    "name": "wle-uuidify",
+    "version": "0.1.0",
+    "author": "Pipo",
+    "description": "Switch Wonderland Engine project incremental number IDs to UUID",
+    "homepage": "https://github.com/SignorPipo/wle-aligner",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SignorPipo/wle-aligner.git"
+    },
+    "license": "ISC",
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "pp",
+        "pipo",
+        "wonderland",
+        "wonderlandengine",
+        "wonderland-engine",
+        "wonderland engine",
+        "wle",
+        "webxr"
+    ],
+    "bin": {
+        "wle-uuidify": "dist/wle_uuidify/index.js"
+    },
+    "type": "module",
+    "main": "./dist/wle_uuidify/index.js",
+    "dependencies": {
+        "@playkostudios/jsonc-ast": "^0.1.3",
+        "isolated-vm": "^4.6.0"
+    },
+    "peerDependencies": {
+        "@wonderlandengine/api": "^1.1.3"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.5",
+        "@typescript-eslint/eslint-plugin": "^6.16.0",
+        "@typescript-eslint/parser": "^6.16.0",
+        "eslint": "^8.51.0",
+        "eslint-plugin-deprecation": "^2.0.0",
+        "typescript": "^5.2.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "wle-uuidify": "node dist/wle_uuidify/index.js",
+        "wle-uuidify-debug": "node --inspect-brk dist/wle_uuidify/index.js",
+        "build-and-run": "npm run build && npm run wle-uuidify",
+        "build-and-debug": "npm run build && npm run wle-uuidify-debug"
+    }
+}

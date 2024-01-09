@@ -1,36 +1,35 @@
 import path from "path";
-import { alignProject } from "./align_project.js";
-import { PROCESS_OPTIONS, extractProcessOptions, extractProcessSourceProjectPath, extractProcessTargetProjectPaths } from "./process_options.js";
+import { getProjectComponentsDefinitions } from "../common/bundle/component_utils.js";
+import { extractProcessProjectPaths } from "../common/cauldron/process_arguments_utils.js";
+import { PROCESS_OPTIONS, extractSwitchUUIDProcessOptions } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
 import { switchToUUID } from "./switch_to_uuid.js";
-import { getProjectComponentsDefinitions } from "./bundle/component_utils.js";
 
-export async function wleAligner(uuidify: boolean = false) {
+export async function wleUUIDify(uuidify: boolean = false) {
     // eslint-disable-next-line no-undef
     const processArguments = process.argv;
 
-    const options = extractProcessOptions(processArguments);
-    const sourceProjectPath = extractProcessSourceProjectPath(processArguments);
-    const targetProjectPaths = extractProcessTargetProjectPaths(processArguments);
+    const options = extractSwitchUUIDProcessOptions(processArguments);
+    const projectPath = extractProcessProjectPaths(processArguments)[0];
 
-    const processReport = new ProcessReport();
-
-    const rootDirPath = path.dirname(sourceProjectPath);
-    const projectComponentsDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
-
-    if ((processReport.myEditorBundleError || processReport.myEditorCustomBundleError) && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
+    if (projectPath == null) {
         console.error("");
-        console.error("Abort process due to editor bundle failure");
-        console.error("Use -r risky flag to ignore this error and proceed");
+        console.error("You need to specify a project path");
         console.error("");
     } else {
-        if (uuidify || options.indexOf(PROCESS_OPTIONS.SWITCH_TO_UUID) >= 0) {
-            await switchToUUID(sourceProjectPath, projectComponentsDefinitions, options, processReport);
-            _logSwitchToUUIDReport(processReport);
+        const processReport = new ProcessReport();
+
+        const rootDirPath = path.dirname(projectPath);
+        const projectComponentsDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
+
+        if ((processReport.myEditorBundleError || processReport.myEditorCustomBundleError) && options.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
+            console.error("");
+            console.error("Abort process due to editor bundle failure");
+            console.error("Use -r risky flag to ignore this error and proceed");
+            console.error("");
         } else {
-            for (const targetProjectPath of targetProjectPaths) {
-                alignProject(sourceProjectPath, targetProjectPath, options);
-            }
+            await switchToUUID(projectPath, projectComponentsDefinitions, options, processReport);
+            _logSwitchToUUIDReport(processReport);
         }
     }
 }

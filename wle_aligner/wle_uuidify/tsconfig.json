@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "outDir": "dist",
         "target": "ES2022",
         "module": "nodenext",
         "moduleResolution": "nodenext",
@@ -16,9 +17,11 @@
     },
     "include": [
         ".",
-        "src"
+        "..",
+        "../src"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "dist"
     ]
 }

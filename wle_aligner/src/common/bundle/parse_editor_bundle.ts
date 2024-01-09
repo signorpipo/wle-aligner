@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import ivm from "isolated-vm";
 import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
 import path from "path";
-import { ProcessReport } from "../process_report.js";
+import { BundleReport } from "./bundle_report.js";
 
 const BUNDLE_PREAMBLE = `
 function _registerEditor(regExports) {
@@ -42,7 +42,7 @@ let Sound = {
 };
 `;
 
-export function parseEditorBundle(rootDirPath: string, processReport: ProcessReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
+export function parseEditorBundle(rootDirPath: string, bundleReport: BundleReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
     const isolate = new ivm.Isolate({ memoryLimit: 128 });
     const context = isolate.createContextSync();
     const jail = context.global;
@@ -58,7 +58,7 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         try {
             editorBundleText = readFileSync(editorBundlePath, { encoding: "utf8" });
         } catch (error) {
-            processReport.myEditorBundleError = true;
+            bundleReport.myEditorBundleError = true;
             console.error("Could not read the editor bundle: " + editorBundlePath);
         }
     }
@@ -91,17 +91,17 @@ export function parseEditorBundle(rootDirPath: string, processReport: ProcessRep
         console.error("Could not evaluate the editor bundle.");
 
         if (editorBundleText.length > 0) {
-            processReport.myEditorBundleError = true;
+            bundleReport.myEditorBundleError = true;
         } else if (editorCustomBundleText.length > 0) {
-            processReport.myEditorCustomBundleError = true;
+            bundleReport.myEditorCustomBundleError = true;
         }
 
         if (!ignoreEditorBundle && editorBundleText.length > 0 && editorCustomBundleText.length > 0) {
             console.error("Trying again with the custom bundle only");
 
-            componentDefinitions = parseEditorBundle(rootDirPath, processReport, true);
+            componentDefinitions = parseEditorBundle(rootDirPath, bundleReport, true);
         } else {
-            processReport.myEditorBundleIgnored = true;
+            bundleReport.myEditorBundleIgnored = true;
 
             componentDefinitions = new Map<string, ModifiedComponentPropertyRecord>();
         }

@@ -1,9 +1,9 @@
 // #CREDITS https://github.com/playkostudios/wle-cleaner
 
 import { Type } from "@wonderlandengine/api";
-import { ProcessReport } from "../process_report.js";
 import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
 import { parseEditorBundle } from "./parse_editor_bundle.js";
+import { BundleReport } from "./bundle_report.js";
 
 export const NATIVE_COMPONENTS = ["animation", "collision", "input", "light", "mesh", "physx", "text", "view"];
 
@@ -13,8 +13,8 @@ export const customPhysxCapsuleOptsType = Symbol("physx-capsule-options");
 export const customPhysxMeshOptsType = Symbol("physx-mesh-options");
 export const customOpaqueColorType = Symbol("opaque-color");
 
-export function getProjectComponentsDefinitions(rootDirPath: string, processReport: ProcessReport): Map<string, ModifiedComponentPropertyRecord> {
-    const componentsDefinitions = parseEditorBundle(rootDirPath, processReport);
+export function getProjectComponentsDefinitions(rootDirPath: string, bundleReport: BundleReport): Map<string, ModifiedComponentPropertyRecord> {
+    const componentsDefinitions = parseEditorBundle(rootDirPath, bundleReport);
 
     // Normalize default values of components and panic on unexpected properties
     for (const [compType, compConfig] of componentsDefinitions) {

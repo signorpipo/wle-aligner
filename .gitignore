@@ -1,5 +1,5 @@
 dist/
 node_modules/
-wle_aligner/cache/
+cache/
 deploy/
-wle_aligner/test_projects/
+test_projects/

@@ -2,3 +2,4 @@ dist/
 node_modules/
 wle_aligner/cache/
 deploy/
+wle_aligner/test_projects/

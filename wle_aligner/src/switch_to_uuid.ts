@@ -14,7 +14,7 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentsD
     const sourceProject = new Project();
     await sourceProject.load(sourceProjectPath);
 
-    const idTokens = _getIDTokens(sourceProject, projectComponentsDefinitions, options);
+    const idTokens = _getIDTokens(sourceProject, projectComponentsDefinitions, options, processReport);
 
     _switchTokenToUUID(sourceProject.myObjects, idTokens, processReport);
     _switchTokenToUUID(sourceProject.myMeshes, idTokens, processReport);
@@ -40,11 +40,11 @@ export async function switchToUUID(sourceProjectPath: string, projectComponentsD
 
 // PRIVATE
 
-function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, options));
-    idTokens.push(..._getIDTokensFromMaterials(project, options));
+    idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, options, processReport));
+    idTokens.push(..._getIDTokensFromMaterials(project, options, processReport));
     idTokens.push(..._getIDTokensFromSkins(project, options));
     idTokens.push(..._getIDTokensFromPipelines(project, options));
     idTokens.push(..._getIDTokensFromSettings(project, options));
@@ -52,7 +52,7 @@ function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string
     return idTokens;
 }
 
-function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__materialID, materialTokenToCheck] of project.myMaterials.getTokenEntries()) {
@@ -65,11 +65,21 @@ function _getIDTokensFromMaterials(project: Project, options: PROCESS_OPTIONS[])
             }
         }
 
-        for (const [__materialPropertyID, materialPropertyTokenToCheck] of materialToken.getTokenEntries()) {
+        for (const [materialPropertyID, materialPropertyTokenToCheck] of materialToken.getTokenEntries()) {
             if (materialPropertyTokenToCheck.type == JSONTokenType.Object) {
                 const materialPropertyToken = ObjectToken.assert(materialPropertyTokenToCheck);
-                for (const [__materialPropertyPropertyID, materialPropertyPropertyTokenToCheck] of materialPropertyToken.getTokenEntries()) {
+                for (const [materialPropertyPropertyID, materialPropertyPropertyTokenToCheck] of materialPropertyToken.getTokenEntries()) {
                     if (materialPropertyPropertyTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(materialPropertyPropertyTokenToCheck).evaluate())) {
+                        let pipelineShaderPropertiesAsID = processReport.myPipelineShaderPropertiesAsID.get(materialPropertyID);
+                        if (pipelineShaderPropertiesAsID == null) {
+                            processReport.myPipelineShaderPropertiesAsID.set(materialPropertyID, []);
+                            pipelineShaderPropertiesAsID = processReport.myPipelineShaderPropertiesAsID.get(materialPropertyID);
+                        }
+
+                        if (pipelineShaderPropertiesAsID?.indexOf(materialPropertyPropertyID) == -1) {
+                            pipelineShaderPropertiesAsID?.push(materialPropertyPropertyID);
+                        }
+
                         idTokens.push(new ParentChildTokenPair(materialPropertyToken, StringToken.assert(materialPropertyPropertyTokenToCheck)));
                     }
                 }
@@ -142,7 +152,7 @@ function _getIDTokensFromPipelines(project: Project, options: PROCESS_OPTIONS[])
     return idTokens;
 }
 
-function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, options: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
@@ -170,9 +180,9 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
                         const componentPropertiesToken = ObjectToken.assert(componentPropertiesTokenToCheck);
                         for (const [propertyKey, propertyValueTokenToCheck] of componentPropertiesToken.getTokenEntries()) {
-                            if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
+                            if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentKey, componentProperties, options, processReport)) {
                                 idTokens.push(new ParentChildTokenPair(componentPropertiesToken, propertyValueTokenToCheck));
-                            } else if (_isPhysXMeshToken(componentKey, propertyKey, propertyValueTokenToCheck, componentProperties, options)) {
+                            } else if (_isPhysXMeshToken(componentKey, propertyKey, propertyValueTokenToCheck, componentProperties, options, processReport)) {
                                 const objectPropertyValue = ObjectToken.assert(propertyValueTokenToCheck);
                                 const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                                 if (meshPropertyValueTokenToCheck) {
@@ -191,7 +201,7 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
 const _isPropertyValueTokenID = function () {
     const idTypes: (Type | symbol)[] = [Type.Mesh, Type.Texture, Type.Animation, Type.Material, Type.Object, Type.Skin];
-    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, options: PROCESS_OPTIONS[]): boolean {
+    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, componentType: string, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, options: PROCESS_OPTIONS[], processReport: ProcessReport): boolean {
         let isID = false;
 
         let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -203,7 +213,21 @@ const _isPropertyValueTokenID = function () {
         if (!propertyDefinition) {
             if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
                 // If the risky flag is set and there is no definition, consider it as an ID
-                return propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
+                isID = propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
+
+                if (isID) {
+                    let componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
+                    if (componentPropertiesAsIDRisky == null) {
+                        processReport.myComponentsPropertiesAsIDRisky.set(componentType, []);
+                        componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
+                    }
+
+                    if (componentPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
+                        componentPropertiesAsIDRisky?.push(propertyKey);
+                    }
+                }
+
+                return isID;
             } else {
                 return false;
             }
@@ -217,7 +241,7 @@ const _isPropertyValueTokenID = function () {
     };
 }();
 
-function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, options: PROCESS_OPTIONS[]): boolean {
+function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, options: PROCESS_OPTIONS[], processReport: ProcessReport): boolean {
     let isPhysXMesh = false;
 
     let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -228,14 +252,27 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
 
     if (!propertyDefinition) {
         if (options.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
-            // If the risky flag is set and there is no definition, consider it as an ID
             if (componentTypeToken == "physx") {
                 if (propertyKey == "convexMesh" || propertyKey == "triangleMesh") {
                     if (propertyValueTokenToCheck.type == JSONTokenType.Object) {
                         const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
                         const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                         if (meshPropertyValueTokenToCheck != null) {
-                            return meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
+                            const isID = meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
+
+                            if (isID) {
+                                let physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
+                                if (physxPropertiesAsIDRisky == null) {
+                                    processReport.myComponentsPropertiesAsIDRisky.set("physx", []);
+                                    physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
+                                }
+
+                                if (physxPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
+                                    physxPropertiesAsIDRisky?.push(propertyKey);
+                                }
+                            }
+
+                            return isID;
                         }
                     }
                 }

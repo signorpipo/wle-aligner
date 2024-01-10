@@ -1,36 +1,20 @@
-import path from "path";
 import { getProjectComponentsDefinitions } from "../common/bundle/component_utils.js";
-import { extractProcessProjectPaths } from "../common/cauldron/process_arguments_utils.js";
-import { PROCESS_OPTIONS, extractSwitchUUIDProcessOptions } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
 import { switchToUUID } from "./switch_to_uuid.js";
 
-export async function wleUUIDify(uuidify: boolean = false) {
-    // eslint-disable-next-line no-undef
-    const processArguments = process.argv;
+export async function wleUUIDify(projectPath: string, commanderOptions: Record<string, string>) {
+    const processReport = new ProcessReport();
 
-    const processOptions = extractSwitchUUIDProcessOptions(processArguments);
-    const projectPath = extractProcessProjectPaths(processArguments)[0];
+    const projectComponentsDefinitions = getProjectComponentsDefinitions(projectPath, commanderOptions, processReport);
 
-    if (projectPath == null) {
+    if ((processReport.myEditorBundleError || processReport.myEditorBundleExtraError) && commanderOptions.unsafe == null) {
         console.error("");
-        console.error("You need to specify a project path");
+        console.error("Abort process due to editor bundle failure");
+        console.error("Use -u unsafe flag to ignore this error and proceed");
         console.error("");
     } else {
-        const processReport = new ProcessReport();
-
-        const rootDirPath = path.dirname(projectPath);
-        const projectComponentsDefinitions = getProjectComponentsDefinitions(rootDirPath, processReport);
-
-        if ((processReport.myEditorBundleError || processReport.myEditorExtraBundleError) && processOptions.indexOf(PROCESS_OPTIONS.RISKY) == -1) {
-            console.error("");
-            console.error("Abort process due to editor bundle failure");
-            console.error("Use -r risky flag to ignore this error and proceed");
-            console.error("");
-        } else {
-            await switchToUUID(projectPath, projectComponentsDefinitions, processOptions, processReport);
-            _logSwitchToUUIDReport(processOptions, processReport);
-        }
+        await switchToUUID(projectPath, projectComponentsDefinitions, commanderOptions, processReport);
+        _logSwitchToUUIDReport(commanderOptions, processReport);
     }
 }
 
@@ -38,7 +22,14 @@ export async function wleUUIDify(uuidify: boolean = false) {
 
 // PRIVATE
 
-function _logSwitchToUUIDReport(processOptions: PROCESS_OPTIONS[], processReport: ProcessReport) {
+function _logSwitchToUUIDReport(commanderOptions: Record<string, string>, processReport: ProcessReport) {
+    if (processReport.myProjectLoadFailed) {
+        console.error("");
+        console.error("Project load failed");
+        console.error("");
+        return;
+    }
+
     console.error("");
 
     console.log("Process Completed");
@@ -50,25 +41,25 @@ function _logSwitchToUUIDReport(processOptions: PROCESS_OPTIONS[], processReport
         if (processReport.myEditorBundleError) {
             console.error("");
             console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
-        } else if (processReport.myEditorExtraBundleError) {
+        } else if (processReport.myEditorBundleExtraError) {
             console.error("");
-            console.log("- editor extra bundle errors have been occurred, some properties might have been changed even though they were not an ID");
+            console.log("- editor bundle extra errors have been occurred, some properties might have been changed even though they were not an ID");
         }
     }
 
-    if (processReport.myComponentsPropertiesAsIDRisky.size > 0) {
+    if (processReport.myComponentsPropertiesAsIDUnsafe.size > 0) {
         console.error("");
 
-        if (processOptions.indexOf(PROCESS_OPTIONS.RISKY) >= 0) {
+        if (commanderOptions.unsafe != null) {
             console.log("- some component properties have been considered an ID but might not be");
         } else {
             console.log("- some component properties have been ignored even though they might have been an ID");
-            console.log("  you can use the risky flag -r to also switch them");
+            console.log("  you can use the unsafe flag -u to also switch them");
         }
 
-        for (const componentType of processReport.myComponentsPropertiesAsIDRisky.keys()) {
+        for (const componentType of processReport.myComponentsPropertiesAsIDUnsafe.keys()) {
             console.log("    - " + componentType);
-            for (const propertyName of processReport.myComponentsPropertiesAsIDRisky.get(componentType)!) {
+            for (const propertyName of processReport.myComponentsPropertiesAsIDUnsafe.get(componentType)!) {
                 console.log("        - " + propertyName);
             }
         }

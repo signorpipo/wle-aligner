@@ -1,10 +1,9 @@
 import { JSONAST, ObjectToken } from "@playkostudios/jsonc-ast";
-import path from "path";
 
 export class Project {
-    private _myPath: string;
-
     private _myJSONAST: JSONAST;
+
+    myPath: string;
 
     myRoot: ObjectToken;
     myObjects: ObjectToken;
@@ -26,10 +25,10 @@ export class Project {
     }
 
     async load(projectPath: string) {
-        this._myPath = projectPath;
+        this.myPath = projectPath;
 
         this._myJSONAST = new JSONAST();
-        this.myRoot = ObjectToken.assert((await this._myJSONAST.parse(this._myPath)).getValueToken());
+        this.myRoot = ObjectToken.assert((await this._myJSONAST.parse(this.myPath)).getValueToken());
         this.myObjects = ObjectToken.assert(this.myRoot.getValueTokenOfKey("objects"));
         this.myMeshes = ObjectToken.assert(this.myRoot.getValueTokenOfKey("meshes"));
         this.myTextures = ObjectToken.assert(this.myRoot.getValueTokenOfKey("textures"));
@@ -45,11 +44,7 @@ export class Project {
         this.myLanguages = ObjectToken.assert(this.myRoot.getValueTokenOfKey("languages"));
     }
 
-    async save(filePrefix: string = "") {
-        let adjustedPath = this._myPath;
-        if (filePrefix.length > 0) {
-            adjustedPath = path.join(path.dirname(this._myPath), filePrefix + "-" + path.basename(this._myPath));
-        }
-        await this._myJSONAST.writeToFile(adjustedPath);
+    async save(newPath: string = "") {
+        await this._myJSONAST.writeToFile(newPath.length > 0 ? newPath : this.myPath);
     }
 }

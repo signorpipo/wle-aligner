@@ -29,6 +29,7 @@
     "main": "./dist/wle_uuidify/index.js",
     "dependencies": {
         "@playkostudios/jsonc-ast": "^0.1.3",
+        "commander": "^11.1.0",
         "isolated-vm": "^4.6.0"
     },
     "peerDependencies": {

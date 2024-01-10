@@ -21,28 +21,9 @@ function _registerEditor(regExports) {
         }
     }
 }
-
-let window = {
-    navigator: {},
-    location: {}
-};
-
-class URL {}
-
-let HowlerGlobal = {
-    prototype: {}
-};
-
-let Howl = {
-    prototype: {}
-};
-
-let Sound = {
-    prototype: {}
-};
 `;
 
-export function parseEditorBundle(rootDirPath: string, bundleReport: BundleReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
+export function parseEditorBundle(projectPath: string, commanderOptions: Record<string, string>, bundleReport: BundleReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
     const isolate = new ivm.Isolate({ memoryLimit: 128 });
     const context = isolate.createContextSync();
     const jail = context.global;
@@ -52,9 +33,11 @@ export function parseEditorBundle(rootDirPath: string, bundleReport: BundleRepor
         componentDefinitions.set(typeName, properties);
     });
 
+    const rootDirPath = path.dirname(projectPath);
+
     let editorBundleText = "";
     if (!ignoreEditorBundle) {
-        const editorBundlePath = path.join(rootDirPath, "cache/js/_editor_bundle.cjs");
+        const editorBundlePath = commanderOptions.editorBundle;
         try {
             editorBundleText = readFileSync(editorBundlePath, { encoding: "utf8" });
         } catch (error) {
@@ -63,15 +46,15 @@ export function parseEditorBundle(rootDirPath: string, bundleReport: BundleRepor
         }
     }
 
-    let editorExtraBundleText = "";
-    const editorExtraBundlePath = path.join(rootDirPath, "editor_extra_bundle.js");
+    let editorBundleExtraText = "";
+    const editorBundleExtraPath = commanderOptions.editorBundleExtra;
     try {
-        editorExtraBundleText = readFileSync(editorExtraBundlePath, { encoding: "utf8" });
+        editorBundleExtraText = readFileSync(editorBundleExtraPath, { encoding: "utf8" });
     } catch (error) {
         // Do nothing
     }
 
-    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorExtraBundleText}\n${editorBundleText}`;
+    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorBundleExtraText}\n${editorBundleText}`;
 
     try {
         const editorIndexModule = isolate.compileModuleSync(adjustedEditorBundleText);
@@ -92,14 +75,14 @@ export function parseEditorBundle(rootDirPath: string, bundleReport: BundleRepor
 
         if (editorBundleText.length > 0) {
             bundleReport.myEditorBundleError = true;
-        } else if (editorExtraBundleText.length > 0) {
-            bundleReport.myEditorExtraBundleError = true;
+        } else if (editorBundleExtraText.length > 0) {
+            bundleReport.myEditorBundleExtraError = true;
         }
 
-        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorExtraBundleText.length > 0) {
-            console.error("A second attempt will be performed using only the extra bundle and the bundle preamble");
+        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorBundleExtraText.length > 0) {
+            console.error("A second attempt will be performed using only the extra bundle");
 
-            componentDefinitions = parseEditorBundle(rootDirPath, bundleReport, true);
+            componentDefinitions = parseEditorBundle(rootDirPath, commanderOptions, bundleReport, true);
         } else {
             bundleReport.myEditorBundleIgnored = true;
 

@@ -3,18 +3,23 @@
 import { ArrayToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import { Type } from "@wonderlandengine/api";
 import crypto from "crypto";
+import path from "path";
 import { customPhysxMeshOptsType } from "../common/bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
 import { Project } from "../common/project/project.js";
-import { PROCESS_OPTIONS } from "./process_options.js";
 import { ProcessReport } from "./process_report.js";
 
-export async function switchToUUID(projectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport) {
+export async function switchToUUID(projectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport) {
     const project = new Project();
-    await project.load(projectPath);
+    try {
+        await project.load(projectPath);
+    } catch (error) {
+        processReport.myProjectLoadFailed = true;
+        return;
+    }
 
-    const idTokens = _getIDTokens(project, projectComponentsDefinitions, processOptions, processReport);
+    const idTokens = _getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
 
     _switchTokenToUUID(project.myObjects, idTokens, processReport);
     _switchTokenToUUID(project.myMeshes, idTokens, processReport);
@@ -29,10 +34,14 @@ export async function switchToUUID(projectPath: string, projectComponentsDefinit
     _switchTokenToUUID(project.myFonts, idTokens, processReport);
     _switchTokenToUUID(project.myLanguages, idTokens, processReport);
 
-    if (processOptions.indexOf(PROCESS_OPTIONS.OVERWRITE) >= 0) {
+    if (commanderOptions.replace != null) {
         project.save();
     } else {
-        project.save("uuid");
+        if (commanderOptions.output != null) {
+            project.save(commanderOptions.output);
+        } else {
+            project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+        }
     }
 }
 
@@ -40,19 +49,19 @@ export async function switchToUUID(projectPath: string, projectComponentsDefinit
 
 // PRIVATE
 
-function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
+function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, processOptions, processReport));
-    idTokens.push(..._getIDTokensFromMaterials(project, processOptions, processReport));
-    idTokens.push(..._getIDTokensFromSkins(project, processOptions));
-    idTokens.push(..._getIDTokensFromPipelines(project, processOptions));
-    idTokens.push(..._getIDTokensFromSettings(project, processOptions));
+    idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, commanderOptions, processReport));
+    idTokens.push(..._getIDTokensFromMaterials(project, commanderOptions, processReport));
+    idTokens.push(..._getIDTokensFromSkins(project, commanderOptions));
+    idTokens.push(..._getIDTokensFromPipelines(project, commanderOptions));
+    idTokens.push(..._getIDTokensFromSettings(project, commanderOptions));
 
     return idTokens;
 }
 
-function _getIDTokensFromMaterials(project: Project, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
+function _getIDTokensFromMaterials(project: Project, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__materialID, materialTokenToCheck] of project.myMaterials.getTokenEntries()) {
@@ -90,7 +99,7 @@ function _getIDTokensFromMaterials(project: Project, processOptions: PROCESS_OPT
     return idTokens;
 }
 
-function _getIDTokensFromSettings(project: Project, processOptions: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromSettings(project: Project, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
@@ -112,7 +121,7 @@ function _getIDTokensFromSettings(project: Project, processOptions: PROCESS_OPTI
     return idTokens;
 }
 
-function _getIDTokensFromSkins(project: Project, processOptions: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromSkins(project: Project, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__skinID, skinTokenToCheck] of project.mySkins.getTokenEntries()) {
@@ -135,7 +144,7 @@ function _getIDTokensFromSkins(project: Project, processOptions: PROCESS_OPTIONS
     return idTokens;
 }
 
-function _getIDTokensFromPipelines(project: Project, processOptions: PROCESS_OPTIONS[]): ParentChildTokenPair[] {
+function _getIDTokensFromPipelines(project: Project, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__pipelineID, pipelineTokenToCheck] of project.myPipelines.getTokenEntries()) {
@@ -152,7 +161,7 @@ function _getIDTokensFromPipelines(project: Project, processOptions: PROCESS_OPT
     return idTokens;
 }
 
-function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport): ParentChildTokenPair[] {
+function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
@@ -179,9 +188,9 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
                         const componentPropertiesToken = ObjectToken.assert(componentPropertiesTokenToCheck);
                         for (const [propertyKey, propertyValueTokenToCheck] of componentPropertiesToken.getTokenEntries()) {
-                            if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentType, projectComponentDefinitions, processOptions, processReport)) {
+                            if (_isPropertyValueTokenID(propertyKey, propertyValueTokenToCheck, componentType, projectComponentDefinitions, commanderOptions, processReport)) {
                                 idTokens.push(new ParentChildTokenPair(componentPropertiesToken, propertyValueTokenToCheck));
-                            } else if (_isPhysXMeshToken(componentType, propertyKey, propertyValueTokenToCheck, projectComponentDefinitions, processOptions, processReport)) {
+                            } else if (_isPhysXMeshToken(componentType, propertyKey, propertyValueTokenToCheck, projectComponentDefinitions, commanderOptions, processReport)) {
                                 const objectPropertyValue = ObjectToken.assert(propertyValueTokenToCheck);
                                 const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                                 if (meshPropertyValueTokenToCheck) {
@@ -200,7 +209,7 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
 const _isPropertyValueTokenID = function () {
     const idTypes: (Type | symbol)[] = [Type.Mesh, Type.Texture, Type.Animation, Type.Material, Type.Object, Type.Skin];
-    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, componentType: string, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport): boolean {
+    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, componentType: string, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
         let isID = false;
 
         let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -210,24 +219,24 @@ const _isPropertyValueTokenID = function () {
         }
 
         if (!propertyDefinition) {
-            const isRisky = processOptions.indexOf(PROCESS_OPTIONS.RISKY) >= 0;
+            const isUnsafe = commanderOptions.unsafe != null;
 
             isID = propertyKey != "name" && propertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(propertyValueTokenToCheck).evaluate());
 
             if (isID) {
-                let componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
-                if (componentPropertiesAsIDRisky == null) {
-                    processReport.myComponentsPropertiesAsIDRisky.set(componentType, []);
-                    componentPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get(componentType);
+                let componentPropertiesAsIDUnsafe = processReport.myComponentsPropertiesAsIDUnsafe.get(componentType);
+                if (componentPropertiesAsIDUnsafe == null) {
+                    processReport.myComponentsPropertiesAsIDUnsafe.set(componentType, []);
+                    componentPropertiesAsIDUnsafe = processReport.myComponentsPropertiesAsIDUnsafe.get(componentType);
                 }
 
-                if (componentPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
-                    componentPropertiesAsIDRisky?.push(propertyKey);
+                if (componentPropertiesAsIDUnsafe?.indexOf(propertyKey) == -1) {
+                    componentPropertiesAsIDUnsafe?.push(propertyKey);
                 }
             }
 
-            // If the risky flag is set and there is no definition, consider it as an ID
-            return isID && isRisky;
+            // If the unsafe flag is set and there is no definition, consider it as an ID
+            return isID && isUnsafe;
         }
 
         if (idTypes.indexOf(propertyDefinition.type) >= 0) {
@@ -238,7 +247,7 @@ const _isPropertyValueTokenID = function () {
     };
 }();
 
-function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, processOptions: PROCESS_OPTIONS[], processReport: ProcessReport): boolean {
+function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
     let isPhysXMesh = false;
 
     let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -254,22 +263,22 @@ function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, prop
                     const objectPropertyValue = propertyValueTokenToCheck as ObjectToken;
                     const meshPropertyValueTokenToCheck = objectPropertyValue.maybeGetValueTokenOfKey("mesh");
                     if (meshPropertyValueTokenToCheck != null) {
-                        const isRisky = processOptions.indexOf(PROCESS_OPTIONS.RISKY) >= 0;
+                        const isUnsafe = commanderOptions.unsafe != null;
                         const isID = meshPropertyValueTokenToCheck.type === JSONTokenType.String && _isIncrementalNumberID(StringToken.assert(meshPropertyValueTokenToCheck).evaluate());
 
                         if (isID) {
-                            let physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
-                            if (physxPropertiesAsIDRisky == null) {
-                                processReport.myComponentsPropertiesAsIDRisky.set("physx", []);
-                                physxPropertiesAsIDRisky = processReport.myComponentsPropertiesAsIDRisky.get("physx");
+                            let physxPropertiesAsIDUnsafe = processReport.myComponentsPropertiesAsIDUnsafe.get("physx");
+                            if (physxPropertiesAsIDUnsafe == null) {
+                                processReport.myComponentsPropertiesAsIDUnsafe.set("physx", []);
+                                physxPropertiesAsIDUnsafe = processReport.myComponentsPropertiesAsIDUnsafe.get("physx");
                             }
 
-                            if (physxPropertiesAsIDRisky?.indexOf(propertyKey) == -1) {
-                                physxPropertiesAsIDRisky?.push(propertyKey);
+                            if (physxPropertiesAsIDUnsafe?.indexOf(propertyKey) == -1) {
+                                physxPropertiesAsIDUnsafe?.push(propertyKey);
                             }
                         }
 
-                        return isID && isRisky;
+                        return isID && isUnsafe;
                     }
                 }
             }

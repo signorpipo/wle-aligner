@@ -3,3 +3,5 @@ node_modules/
 cache/
 deploy/
 test_projects/
+
+wle_aligner/wle_uuidify/editor-bundle-extra.js

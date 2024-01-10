@@ -365,13 +365,7 @@ function _switchTokenToUUID(tokenToSwitch: ObjectToken, idTokens: ParentChildTok
             for (const idTokenToReplace of idTokens) {
                 const childID = StringToken.assert(idTokenToReplace.child).evaluate();
                 if (childID == id) {
-                    try {
-                        idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
-                    } catch (error) {
-                        if (processReport.myDuplicatedIDs.indexOf(id) == -1) {
-                            processReport.myDuplicatedIDs.push(id);
-                        }
-                    }
+                    idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
                 }
             }
         }

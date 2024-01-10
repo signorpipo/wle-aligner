@@ -11,7 +11,6 @@ export async function wleUUIDify(projectPath: string, commanderOptions: Record<s
         await project.load(projectPath);
     } catch (error) {
         processReport.myProjectLoadFailed = true;
-        return;
     }
 
     if (!processReport.myProjectLoadFailed) {

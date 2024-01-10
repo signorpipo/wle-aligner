@@ -24,6 +24,25 @@ export class Project {
 
     }
 
+    getAllObjectTokens(): ObjectToken[] {
+        const objectTokens: ObjectToken[] = [];
+
+        objectTokens.push(this.myObjects);
+        objectTokens.push(this.myMeshes);
+        objectTokens.push(this.myTextures);
+        objectTokens.push(this.myImages);
+        objectTokens.push(this.myMaterials);
+        objectTokens.push(this.myShaders);
+        objectTokens.push(this.myAnimations);
+        objectTokens.push(this.mySkins);
+        objectTokens.push(this.myPipelines);
+        objectTokens.push(this.myFiles);
+        objectTokens.push(this.myFonts);
+        objectTokens.push(this.myLanguages);
+
+        return objectTokens;
+    }
+
     async load(projectPath: string) {
         this.myPath = projectPath;
 

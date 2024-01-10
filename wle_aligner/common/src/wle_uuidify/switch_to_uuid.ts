@@ -16,18 +16,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
     if (processReport.myDuplicatedIDs.length == 0) {
         const idTokens = _getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
 
-        _switchTokenToUUID(project.myObjects, idTokens, processReport);
-        _switchTokenToUUID(project.myMeshes, idTokens, processReport);
-        _switchTokenToUUID(project.myTextures, idTokens, processReport);
-        _switchTokenToUUID(project.myImages, idTokens, processReport);
-        _switchTokenToUUID(project.myMaterials, idTokens, processReport);
-        _switchTokenToUUID(project.myShaders, idTokens, processReport);
-        _switchTokenToUUID(project.myAnimations, idTokens, processReport);
-        _switchTokenToUUID(project.mySkins, idTokens, processReport);
-        _switchTokenToUUID(project.myPipelines, idTokens, processReport);
-        _switchTokenToUUID(project.myFiles, idTokens, processReport);
-        _switchTokenToUUID(project.myFonts, idTokens, processReport);
-        _switchTokenToUUID(project.myLanguages, idTokens, processReport);
+        _switchTokenToUUID(project.getAllObjectTokens(), idTokens, processReport);
 
         if (commanderOptions.replace != null) {
             project.save();
@@ -46,21 +35,8 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
 export function getDuplicateIDs(project: Project): string[] {
     const duplicatedIDs: string[] = [];
 
-    const objectTokens: ObjectToken[] = [];
-    objectTokens.push(project.myMeshes);
-    objectTokens.push(project.myTextures);
-    objectTokens.push(project.myImages);
-    objectTokens.push(project.myMaterials);
-    objectTokens.push(project.myShaders);
-    objectTokens.push(project.myAnimations);
-    objectTokens.push(project.mySkins);
-    objectTokens.push(project.myPipelines);
-    objectTokens.push(project.myFiles);
-    objectTokens.push(project.myFonts);
-    objectTokens.push(project.myLanguages);
-
     const idsAlreadyFound: string[] = [];
-    for (const objectToken of objectTokens) {
+    for (const objectToken of project.getAllObjectTokens()) {
         for (const [id, __tokenToCheck] of objectToken.getTokenEntries()) {
             if (idsAlreadyFound.indexOf(id) == -1) {
                 idsAlreadyFound.push(id);
@@ -357,15 +333,17 @@ const _randomUUID = function () {
     };
 }();
 
-function _switchTokenToUUID(tokenToSwitch: ObjectToken, idTokens: ParentChildTokenPair[], processReport: ProcessReport) {
-    for (const [id, __tokenToCheck] of tokenToSwitch.getTokenEntries()) {
-        if (_isIncrementalNumberID(id)) {
-            const uuid = _randomUUID();
-            replaceParentTokenKey(id, uuid, tokenToSwitch);
-            for (const idTokenToReplace of idTokens) {
-                const childID = StringToken.assert(idTokenToReplace.child).evaluate();
-                if (childID == id) {
-                    idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
+function _switchTokenToUUID(objectTokens: ObjectToken[], idTokens: ParentChildTokenPair[], processReport: ProcessReport) {
+    for (const objectToken of objectTokens) {
+        for (const [id, __tokenToCheck] of objectToken.getTokenEntries()) {
+            if (_isIncrementalNumberID(id)) {
+                const uuid = _randomUUID();
+                replaceParentTokenKey(id, uuid, objectToken);
+                for (const idTokenToReplace of idTokens) {
+                    const childID = StringToken.assert(idTokenToReplace.child).evaluate();
+                    if (childID == id) {
+                        idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(uuid));
+                    }
                 }
             }
         }

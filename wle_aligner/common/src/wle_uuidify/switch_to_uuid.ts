@@ -10,39 +10,69 @@ import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } f
 import { Project } from "../common/project/project.js";
 import { ProcessReport } from "./process_report.js";
 
-export async function switchToUUID(projectPath: string, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport) {
-    const project = new Project();
-    try {
-        await project.load(projectPath);
-    } catch (error) {
-        processReport.myProjectLoadFailed = true;
-        return;
-    }
+export async function switchToUUID(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport) {
+    processReport.myDuplicatedIDs.push(...getDuplicateIDs(project));
 
-    const idTokens = _getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
+    if (processReport.myDuplicatedIDs.length == 0) {
+        const idTokens = _getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
 
-    _switchTokenToUUID(project.myObjects, idTokens, processReport);
-    _switchTokenToUUID(project.myMeshes, idTokens, processReport);
-    _switchTokenToUUID(project.myTextures, idTokens, processReport);
-    _switchTokenToUUID(project.myImages, idTokens, processReport);
-    _switchTokenToUUID(project.myMaterials, idTokens, processReport);
-    _switchTokenToUUID(project.myShaders, idTokens, processReport);
-    _switchTokenToUUID(project.myAnimations, idTokens, processReport);
-    _switchTokenToUUID(project.mySkins, idTokens, processReport);
-    _switchTokenToUUID(project.myPipelines, idTokens, processReport);
-    _switchTokenToUUID(project.myFiles, idTokens, processReport);
-    _switchTokenToUUID(project.myFonts, idTokens, processReport);
-    _switchTokenToUUID(project.myLanguages, idTokens, processReport);
+        _switchTokenToUUID(project.myObjects, idTokens, processReport);
+        _switchTokenToUUID(project.myMeshes, idTokens, processReport);
+        _switchTokenToUUID(project.myTextures, idTokens, processReport);
+        _switchTokenToUUID(project.myImages, idTokens, processReport);
+        _switchTokenToUUID(project.myMaterials, idTokens, processReport);
+        _switchTokenToUUID(project.myShaders, idTokens, processReport);
+        _switchTokenToUUID(project.myAnimations, idTokens, processReport);
+        _switchTokenToUUID(project.mySkins, idTokens, processReport);
+        _switchTokenToUUID(project.myPipelines, idTokens, processReport);
+        _switchTokenToUUID(project.myFiles, idTokens, processReport);
+        _switchTokenToUUID(project.myFonts, idTokens, processReport);
+        _switchTokenToUUID(project.myLanguages, idTokens, processReport);
 
-    if (commanderOptions.replace != null) {
-        project.save();
-    } else {
-        if (commanderOptions.output != null) {
-            project.save(commanderOptions.output);
+        if (commanderOptions.replace != null) {
+            project.save();
         } else {
-            project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+            if (commanderOptions.output != null) {
+                project.save(commanderOptions.output);
+            } else {
+                project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+            }
+        }
+
+        processReport.myProjectCompleted = true;
+    }
+}
+
+export function getDuplicateIDs(project: Project): string[] {
+    const duplicatedIDs: string[] = [];
+
+    const objectTokens: ObjectToken[] = [];
+    objectTokens.push(project.myMeshes);
+    objectTokens.push(project.myTextures);
+    objectTokens.push(project.myImages);
+    objectTokens.push(project.myMaterials);
+    objectTokens.push(project.myShaders);
+    objectTokens.push(project.myAnimations);
+    objectTokens.push(project.mySkins);
+    objectTokens.push(project.myPipelines);
+    objectTokens.push(project.myFiles);
+    objectTokens.push(project.myFonts);
+    objectTokens.push(project.myLanguages);
+
+    const idsAlreadyFound: string[] = [];
+    for (const objectToken of objectTokens) {
+        for (const [id, __tokenToCheck] of objectToken.getTokenEntries()) {
+            if (idsAlreadyFound.indexOf(id) == -1) {
+                idsAlreadyFound.push(id);
+            } else {
+                if (duplicatedIDs.indexOf(id) == -1) {
+                    duplicatedIDs.push(id);
+                }
+            }
         }
     }
+
+    return duplicatedIDs;
 }
 
 

@@ -61,53 +61,58 @@ function _logSwitchToUUIDReport(commanderOptions: Record<string, string>, proces
         console.log("UUIDIFY Failed");
     }
 
-    if (processReport.myEditorBundleIgnored) {
+    if (processReport.myDuplicatedIDAfterSwitch) {
         console.error("");
-        console.log("- editor bundle has been ignored, some properties might have been changed even though they were not an ID");
-    } else {
-        if (processReport.myEditorBundleError) {
-            console.error("");
-            console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
-        } else if (processReport.myEditorBundleExtraError) {
-            console.error("");
-            console.log("- editor bundle extra errors have been occurred, some properties might have been changed even though they were not an ID");
-        }
-    }
-
-    if (processReport.myDuplicatedIDs.length > 0) {
+        console.log("- after the switch to UUIDs some duplicated IDs have been found");
+        console.log("  this might be due to a rare coincidence where a UUID have been generated that was already present in the project");
+        console.log("  run the process again");
+    } else if (processReport.myDuplicatedIDs.length > 0) {
         console.error("");
         console.log("- duplicated IDs have been found on different resources");
         console.log("  please check these IDs and manually adjust them before attempting again to uuidify the project");
         for (const duplicatedID of processReport.myDuplicatedIDs) {
             console.log("  - " + duplicatedID);
         }
-    }
-
-    if (processReport.myComponentsPropertiesAsIDUnsafe.size > 0) {
-        console.error("");
-
-        if (commanderOptions.unsafe != null) {
-            console.log("- some component properties have been considered an ID but might not be");
+    } else {
+        if (processReport.myEditorBundleIgnored) {
+            console.error("");
+            console.log("- editor bundle has been ignored, some properties might have been changed even though they were not an ID");
         } else {
-            console.log("- some component properties have been ignored even though they might have been an ID");
-            console.log("  you can use the unsafe flag -u to also switch them");
-        }
-
-        for (const componentType of processReport.myComponentsPropertiesAsIDUnsafe.keys()) {
-            console.log("  - " + componentType);
-            for (const propertyName of processReport.myComponentsPropertiesAsIDUnsafe.get(componentType)!) {
-                console.log("    - " + propertyName);
+            if (processReport.myEditorBundleError) {
+                console.error("");
+                console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
+            } else if (processReport.myEditorBundleExtraError) {
+                console.error("");
+                console.log("- editor bundle extra errors have been occurred, some properties might have been changed even though they were not an ID");
             }
         }
-    }
 
-    if (processReport.myPipelineShaderPropertiesAsID.size > 0) {
-        console.error("");
-        console.log("- some pipeline shader properties have been considered an ID but might not be");
-        for (const shaderName of processReport.myPipelineShaderPropertiesAsID.keys()) {
-            console.log("  - " + shaderName);
-            for (const shaderPropertyName of processReport.myPipelineShaderPropertiesAsID.get(shaderName)!) {
-                console.log("    - " + shaderPropertyName);
+        if (processReport.myComponentsPropertiesAsIDUnsafe.size > 0) {
+            console.error("");
+
+            if (commanderOptions.unsafe != null) {
+                console.log("- some component properties have been considered an ID but might not be");
+            } else {
+                console.log("- some component properties have been ignored even though they might have been an ID");
+                console.log("  you can use the unsafe flag -u to also switch them");
+            }
+
+            for (const componentType of processReport.myComponentsPropertiesAsIDUnsafe.keys()) {
+                console.log("  - " + componentType);
+                for (const propertyName of processReport.myComponentsPropertiesAsIDUnsafe.get(componentType)!) {
+                    console.log("    - " + propertyName);
+                }
+            }
+        }
+
+        if (processReport.myPipelineShaderPropertiesAsID.size > 0) {
+            console.error("");
+            console.log("- some pipeline shader properties have been considered an ID but might not be");
+            for (const shaderName of processReport.myPipelineShaderPropertiesAsID.keys()) {
+                console.log("  - " + shaderName);
+                for (const shaderPropertyName of processReport.myPipelineShaderPropertiesAsID.get(shaderName)!) {
+                    console.log("    - " + shaderPropertyName);
+                }
             }
         }
     }

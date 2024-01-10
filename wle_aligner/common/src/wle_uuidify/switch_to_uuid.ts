@@ -18,17 +18,21 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
 
         _switchTokenToUUID(project.getAllObjectTokens(), idTokens, processReport);
 
-        if (commanderOptions.replace != null) {
-            project.save();
-        } else {
-            if (commanderOptions.output != null) {
-                project.save(commanderOptions.output);
+        const duplicatedIDsAfterSwitch = getDuplicateIDs(project);
+        if (duplicatedIDsAfterSwitch.length == 0) {
+            if (commanderOptions.replace != null) {
+                project.save();
             } else {
-                project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+                if (commanderOptions.output != null) {
+                    project.save(commanderOptions.output);
+                } else {
+                    project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+                }
             }
+            processReport.myProjectCompleted = true;
+        } else {
+            processReport.myDuplicatedIDAfterSwitch = true;
         }
-
-        processReport.myProjectCompleted = true;
     }
 }
 

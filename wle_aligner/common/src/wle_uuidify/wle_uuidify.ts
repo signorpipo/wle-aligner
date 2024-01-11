@@ -16,7 +16,7 @@ export async function wleUUIDify(projectPath: string, commanderOptions: Record<s
     if (!processReport.myProjectLoadFailed) {
         const projectComponentsDefinitions = getProjectComponentsDefinitions(projectPath, commanderOptions, processReport);
 
-        if ((processReport.myEditorBundleError || processReport.myEditorBundleExtraError) && commanderOptions.unsafe == null) {
+        if ((processReport.myEditorBundleError || processReport.myEditorBundleExtrasError) && commanderOptions.unsafe == null) {
             console.error("");
             console.error("Abort process due to editor bundle failure");
             console.error("Use -u unsafe flag to ignore this error and proceed");
@@ -81,9 +81,9 @@ function _logSwitchToUUIDReport(commanderOptions: Record<string, string>, proces
             if (processReport.myEditorBundleError) {
                 console.error("");
                 console.log("- editor bundle errors have been occurred, some properties might have been changed even though they were not an ID");
-            } else if (processReport.myEditorBundleExtraError) {
+            } else if (processReport.myEditorBundleExtrasError) {
                 console.error("");
-                console.log("- editor bundle extra errors have been occurred, some properties might have been changed even though they were not an ID");
+                console.log("- editor bundle extras errors have been occurred, some properties might have been changed even though they were not an ID");
             }
         }
 

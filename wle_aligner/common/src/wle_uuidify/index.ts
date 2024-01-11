@@ -9,7 +9,7 @@ program
     .option("-r, --replace", "replace the original project, ignoring the output option, if specified")
     .option("-u, --unsafe", "uuidify the project even if there is no bundle, it contains errors, or for component properties that might not be incremental number IDs")
     .option("-b, --editor-bundle <path>", "path to the project bundle\r", "cache/js/_editor_bundle.cjs")
-    .option("-e, --editor-bundle-extra <path>", "add extra definitions to the editor bundle via a JS script\r", "editor-bundle-extra.js")
+    .option("-e, --editor-bundle-extras <path>", "add extra definitions to the editor bundle via a JS script\r", "editor-bundle-extras.js")
     .option("-d, --duplicates", "checks if there are duplicated IDs in the project")
     .action(wleUUIDify);
 

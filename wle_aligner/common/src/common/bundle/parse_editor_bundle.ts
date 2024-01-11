@@ -46,15 +46,15 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
         }
     }
 
-    let editorBundleExtraText = "";
-    const editorBundleExtraPath = commanderOptions.editorBundleExtra;
+    let editorBundleExtrasText = "";
+    const editorBundleExtrasPath = commanderOptions.editorBundleExtras;
     try {
-        editorBundleExtraText = readFileSync(editorBundleExtraPath, { encoding: "utf8" });
+        editorBundleExtrasText = readFileSync(editorBundleExtrasPath, { encoding: "utf8" });
     } catch (error) {
         // Do nothing
     }
 
-    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorBundleExtraText}\n${editorBundleText}`;
+    const adjustedEditorBundleText = `${BUNDLE_PREAMBLE}\n${editorBundleExtrasText}\n${editorBundleText}`;
 
     try {
         const editorIndexModule = isolate.compileModuleSync(adjustedEditorBundleText);
@@ -75,12 +75,12 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
 
         if (editorBundleText.length > 0) {
             bundleReport.myEditorBundleError = true;
-        } else if (editorBundleExtraText.length > 0) {
-            bundleReport.myEditorBundleExtraError = true;
+        } else if (editorBundleExtrasText.length > 0) {
+            bundleReport.myEditorBundleExtrasError = true;
         }
 
-        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorBundleExtraText.length > 0) {
-            console.error("A second attempt will be performed using only the extra bundle");
+        if (!ignoreEditorBundle && editorBundleText.length > 0 && editorBundleExtrasText.length > 0) {
+            console.error("A second attempt will be performed using only the bundle extras script");
 
             componentDefinitions = parseEditorBundle(rootDirPath, commanderOptions, bundleReport, true);
         } else {

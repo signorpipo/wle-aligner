@@ -1,5 +1,5 @@
 export class BundleReport {
     myEditorBundleError: boolean = false;
-    myEditorBundleExtraError: boolean = false;
+    myEditorBundleExtrasError: boolean = false;
     myEditorBundleIgnored: boolean = false;
 }

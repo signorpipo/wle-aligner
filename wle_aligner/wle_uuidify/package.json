@@ -1,6 +1,6 @@
 {
     "name": "wle-uuidify",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "author": "Pipo",
     "description": "Switch Wonderland Engine project incremental number IDs to UUID",
     "homepage": "https://github.com/SignorPipo/wle-aligner",
@@ -28,20 +28,20 @@
     "type": "module",
     "main": "./dist/wle_uuidify/index.js",
     "dependencies": {
-        "@playkostudios/jsonc-ast": "^0.1.4",
+        "@playkostudios/jsonc-ast": "^0.1.5",
         "commander": "^11.1.0",
         "isolated-vm": "^4.6.0"
     },
     "peerDependencies": {
-        "@wonderlandengine/api": "^1.1.3"
+        "@wonderlandengine/api": "^1.1.5"
     },
     "devDependencies": {
-        "@types/node": "^20.10.5",
-        "@typescript-eslint/eslint-plugin": "^6.16.0",
-        "@typescript-eslint/parser": "^6.16.0",
-        "eslint": "^8.51.0",
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.18.1",
+        "@typescript-eslint/parser": "^6.18.1",
+        "eslint": "^8.56.0",
         "eslint-plugin-deprecation": "^2.0.0",
-        "typescript": "^5.2.2"
+        "typescript": "^5.3.3"
     },
     "scripts": {
         "build": "tsc",

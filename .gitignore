@@ -5,3 +5,5 @@ deploy/
 test_projects/
 
 wle_aligner/wle_uuidify/editor-bundle-extra.js
+
+wle_aligner/wle_uuidify/editor-bundle-extras.js

@@ -77,6 +77,7 @@ The following options are available:
 
         class ExampleClass { }
 
+        // This might be needed for some libraries that define their classes in the old js way, like Howler
         let ExampleObjectDefinedClass = {
             prototype: {}
         };

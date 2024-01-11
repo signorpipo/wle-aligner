@@ -22,6 +22,10 @@ Make sure to use version control.
 
 Experimental utility tool to switch incremental number IDs of a Wonderland Engine project to UUIDs.
 
+Source code: https://github.com/SignorPipo/wle-aligner
+
+NPM package: https://www.npmjs.com/package/wle-uuidify
+
 ## :warning: Warning
 This tool is very experimental.  
 Always verify that the aligned project is OK after using the tool.  

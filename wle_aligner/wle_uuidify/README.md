@@ -63,3 +63,8 @@ The following options are available:
         ```
 - `-h | --help`: 
     - display help for the command
+
+# Credits
+
+- [wle-cleaner](https://github.com/playkostudios/wle-cleaner), used as a base for these tools
+- [playkostudios](https://github.com/playkostudios), for sponsoring the tools

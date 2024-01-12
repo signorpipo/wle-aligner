@@ -9,6 +9,7 @@ program
     .option("-o, --output <path>", "where the aligned target project file will be stored\r (default: \"<target-project-dir>/target-<target-project-name>\")")
     .option("-r, --replace", "replace the original target project, ignoring the output option, if specified")
     .option("-u, --unsafe", "align the projects even if there is no bundle or it contains errors")
+    .option("-s, --strict", "align only the resources that contains the same value for all their properties, instead of guessing it just through the name, linked assets, or similar \"identifiers\" properties")
     .addOption(new Option("-a, --align <properties...>", "align only the specified resource properties\r")
         .choices(["ids"]))
     .addOption(new Option("-f, --filter <resources...>", "align only the specified project resources\r")

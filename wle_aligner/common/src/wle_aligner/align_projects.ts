@@ -1,12 +1,12 @@
 // #CREDITS https://github.com/playkostudios/wle-cleaner
 
-import { StringToken } from "@playkostudios/jsonc-ast";
+import { ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
+import path from "path";
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
-import { ParentChildTokenPair, getEqualJSONToken, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
+import { ParentChildTokenPair, areTokensEqual, getEqualJSONToken, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
 import { Project } from "../common/project/project.js";
 import { getDuplicateIDs, getIDTokens } from "../wle_uuidify/switch_to_uuid.js";
 import { AlignProcessReport } from "./process_report.js";
-import path from "path";
 
 export async function alignProjects(sourceProject: Project, targetProject: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
@@ -23,6 +23,8 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
 
         let changedSomething = false;
         do {
+            changedSomething = false;
+
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("objects") >= 0) {
                 changedSomething = changedSomething || _alignObjects();
             }
@@ -58,18 +60,35 @@ function _alignObjects(): boolean {
 }
 
 function _alignMeshes(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
-    const changedSomething = false;
+    let changedSomething = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
         for (const [sourceID, sourceTokenToCheck] of sourceProject.myMeshes.getTokenEntries()) {
-
             const equalTargetToken = getEqualJSONToken(sourceTokenToCheck, targetProject.myMeshes);
             if (equalTargetToken != null) {
-                replaceParentTokenKey(equalTargetToken.childKey!, sourceID, targetProject.myMeshes);
-                for (const idTokenToReplace of targetIDTokens!) {
-                    const childID = StringToken.assert(idTokenToReplace.child).evaluate();
-                    if (childID == equalTargetToken.childKey) {
-                        idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(sourceID));
+                if (sourceID != equalTargetToken!.childKey!) {
+                    replaceParentTokenKey(equalTargetToken!.childKey!, sourceID, targetProject.myMeshes);
+                    _replaceID(equalTargetToken!.childKey!, sourceID, targetIDTokens!);
+                    changedSomething = true;
+                }
+            } else if (commanderOptions.strict == null) {
+                const sourceLinkTokenToCheck = ObjectToken.assert(sourceTokenToCheck).maybeGetValueTokenOfKey("link");
+                if (sourceLinkTokenToCheck != null) {
+                    for (const [targetID, targetTokenToCheck] of targetProject.myMeshes.getTokenEntries()) {
+                        if (sourceID != targetID) {
+                            const targetLinkTokenToCheck = ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey("link");
+                            if (targetLinkTokenToCheck != null) {
+                                if (areTokensEqual(sourceLinkTokenToCheck, targetLinkTokenToCheck)) {
+                                    replaceParentTokenKey(targetID, sourceID, targetProject.myMeshes);
+                                    _replaceID(targetID, sourceID, targetIDTokens!);
+                                    changedSomething = true;
+
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
@@ -77,4 +96,13 @@ function _alignMeshes(sourceProject: Project, targetProject: Project, targetIDTo
     }
 
     return changedSomething;
+}
+
+function _replaceID(oldID: string, newID: string, idTokens: ParentChildTokenPair[]) {
+    for (const idTokenToReplace of idTokens) {
+        const childID = StringToken.assert(idTokenToReplace.child).evaluate();
+        if (childID == oldID) {
+            idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(newID));
+        }
+    }
 }

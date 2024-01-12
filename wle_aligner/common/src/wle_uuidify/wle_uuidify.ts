@@ -55,7 +55,7 @@ export async function wleUUIDify(projectPath: string, commanderOptions: Record<s
 function _logSwitchToUUIDReport(commanderOptions: Record<string, string>, processReport: ProcessReport) {
     console.error("");
 
-    if (processReport.myProjectCompleted) {
+    if (processReport.myProcessCompleted) {
         console.log("UUIDIFY Completed");
     } else {
         console.log("UUIDIFY Failed");

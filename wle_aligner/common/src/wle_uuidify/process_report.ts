@@ -5,6 +5,6 @@ export class ProcessReport extends BundleReport {
     myProjectLoadFailed: boolean = false;
     myComponentsPropertiesAsIDUnsafe: Map<string, string[]> = new Map();
     myPipelineShaderPropertiesAsID: Map<string, string[]> = new Map();
-    myProjectCompleted: boolean = false;
+    myProcessCompleted: boolean = false;
     myDuplicatedIDAfterSwitch: boolean = false;
 }

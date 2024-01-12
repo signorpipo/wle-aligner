@@ -29,7 +29,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
                     project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
                 }
             }
-            processReport.myProjectCompleted = true;
+            processReport.myProcessCompleted = true;
         } else {
             processReport.myDuplicatedIDAfterSwitch = true;
         }

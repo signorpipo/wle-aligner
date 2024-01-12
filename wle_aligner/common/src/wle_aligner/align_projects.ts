@@ -39,16 +39,19 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
 
         } while (changedSomething);
 
-        if (commanderOptions.replace != null) {
-            targetProject.save();
-        } else {
-            if (commanderOptions.output != null) {
-                targetProject.save(commanderOptions.output);
+        processReport.myDuplicatedIDsAfterAlign = getDuplicateIDs(targetProject);
+        if (processReport.myDuplicatedIDsAfterAlign.length == 0) {
+            if (commanderOptions.replace != null) {
+                targetProject.save();
             } else {
-                targetProject.save(path.join(path.dirname(targetProject.myPath), "aligned-" + path.basename(targetProject.myPath)));
+                if (commanderOptions.output != null) {
+                    targetProject.save(commanderOptions.output);
+                } else {
+                    targetProject.save(path.join(path.dirname(targetProject.myPath), "aligned-" + path.basename(targetProject.myPath)));
+                }
             }
+            processReport.myProcessCompleted = true;
         }
-        processReport.myProcessCompleted = true;
     }
 }
 

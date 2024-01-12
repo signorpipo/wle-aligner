@@ -61,8 +61,15 @@ function _logAlignProjectsReport(commanderOptions: Record<string, string>, proce
     } else {
         console.log("ALIGN Failed");
     }
-
-    if (processReport.mySourceDuplicatedIDs.length > 0 || processReport.myTargetDuplicatedIDs.length > 0) {
+    if (processReport.myDuplicatedIDsAfterAlign.length > 0) {
+        console.error("");
+        console.log("- after the align some duplicated IDs have been found");
+        console.log("  this might be due to an ID which is used in the source project been already used in the target project, even though not for the same resource");
+        console.log("  please check these IDs and manually adjust them before attempting again to align the projects");
+        for (const duplicatedID of processReport.myDuplicatedIDsAfterAlign) {
+            console.log("  - " + duplicatedID);
+        }
+    } else if (processReport.mySourceDuplicatedIDs.length > 0 || processReport.myTargetDuplicatedIDs.length > 0) {
         if (processReport.mySourceDuplicatedIDs.length > 0) {
             console.error("");
             console.log("- duplicated IDs have been found on the source project on different resources");

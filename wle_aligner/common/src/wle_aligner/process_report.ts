@@ -5,4 +5,5 @@ export class AlignProcessReport extends ProcessReport {
     myTargetProjectLoadFailed: boolean = false;
     mySourceDuplicatedIDs: string[] = [];
     myTargetDuplicatedIDs: string[] = [];
+    myDuplicatedIDsAfterAlign: string[] = [];
 }

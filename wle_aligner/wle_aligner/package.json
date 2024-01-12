@@ -1,0 +1,53 @@
+{
+    "name": "wle-aligner",
+    "version": "0.1.0",
+    "author": "Pipo",
+    "description": "Align two Wonderland Engine projects so that they can share, as much as possible, the same resources and structure",
+    "homepage": "https://github.com/SignorPipo/wle-aligner",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SignorPipo/wle-aligner.git"
+    },
+    "license": "ISC",
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "pp",
+        "pipo",
+        "wonderland",
+        "wonderlandengine",
+        "wonderland-engine",
+        "wonderland engine",
+        "wle",
+        "webxr"
+    ],
+    "bin": {
+        "wle-aligner": "dist/wle_aligner/index.js"
+    },
+    "type": "module",
+    "main": "./dist/wle_aligner/index.js",
+    "dependencies": {
+        "@playkostudios/jsonc-ast": "^0.1.5",
+        "commander": "^11.1.0",
+        "isolated-vm": "^4.6.0"
+    },
+    "peerDependencies": {
+        "@wonderlandengine/api": "^1.1.5"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^6.18.1",
+        "@typescript-eslint/parser": "^6.18.1",
+        "eslint": "^8.56.0",
+        "eslint-plugin-deprecation": "^2.0.0",
+        "typescript": "^5.3.3"
+    },
+    "scripts": {
+        "build": "tsc",
+        "wle-aligner": "node dist/wle_aligner/index.js",
+        "wle-aligner-debug": "node --inspect-brk dist/wle_aligner/index.js",
+        "build-and-run": "npm run build && npm run wle-aligner",
+        "build-and-debug": "npm run build && npm run wle-aligner-debug"
+    }
+}

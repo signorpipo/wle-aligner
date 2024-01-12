@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "target": "ES2022",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "experimentalDecorators": true,
+        "resolveJsonModule": true,
+        "strictNullChecks": true,
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "DOM",
+            "ES2022"
+        ]
+    },
+    "include": [
+        ".",
+        "../common",
+        "../common/src"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

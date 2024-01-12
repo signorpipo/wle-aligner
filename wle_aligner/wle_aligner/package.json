@@ -30,7 +30,8 @@
     "dependencies": {
         "@playkostudios/jsonc-ast": "^0.1.5",
         "commander": "^11.1.0",
-        "isolated-vm": "^4.6.0"
+        "isolated-vm": "^4.6.0",
+        "validator": "^13.11.0"
     },
     "peerDependencies": {
         "@wonderlandengine/api": "^1.1.5"

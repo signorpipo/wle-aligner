@@ -2,6 +2,7 @@
 
 import { ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import path from "path";
+import isUUID from "validator/lib/isUUID.js";
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { ParentChildTokenPair, areTokensEqual, getEqualJSONToken, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
 import { Project } from "../common/project/project.js";
@@ -18,7 +19,7 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
         let targetIDTokens: ParentChildTokenPair[] | null = null;
 
         if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-            targetIDTokens = getIDTokens(targetProject, projectComponentsDefinitions!, commanderOptions, processReport);
+            targetIDTokens = getIDTokens(targetProject, projectComponentsDefinitions!, _isID, commanderOptions, processReport);
         }
 
         let changedSomething = false;
@@ -151,4 +152,12 @@ function _replaceID(oldID: string, newID: string, idTokens: ParentChildTokenPair
             idTokenToReplace.parent.replaceChild(idTokenToReplace.child, StringToken.fromString(newID));
         }
     }
+}
+
+function _isID(idToCheck: string): boolean {
+    if (parseInt(idToCheck).toFixed(0) == idToCheck) {
+        return true;
+    }
+
+    return isUUID(idToCheck);
 }

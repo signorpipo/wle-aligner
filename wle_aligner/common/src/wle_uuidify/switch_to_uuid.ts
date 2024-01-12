@@ -14,7 +14,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
     processReport.myDuplicatedIDs.push(...getDuplicateIDs(project));
 
     if (processReport.myDuplicatedIDs.length == 0) {
-        const idTokens = _getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
+        const idTokens = getIDTokens(project, projectComponentsDefinitions, commanderOptions, processReport);
 
         _switchTokenToUUID(project.getAllObjectTokens(), idTokens, processReport);
 
@@ -55,11 +55,7 @@ export function getDuplicateIDs(project: Project): string[] {
     return duplicatedIDs;
 }
 
-
-
-// PRIVATE
-
-function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
+export function getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, commanderOptions, processReport));
@@ -70,6 +66,10 @@ function _getIDTokens(project: Project, projectComponentsDefinitions: Map<string
 
     return idTokens;
 }
+
+
+
+// PRIVATE
 
 function _getIDTokensFromMaterials(project: Project, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];

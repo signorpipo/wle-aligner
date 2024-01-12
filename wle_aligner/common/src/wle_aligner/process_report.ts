@@ -1,7 +1,8 @@
-import { BundleReport } from "../common/bundle/bundle_report.js";
+import { ProcessReport } from "../wle_uuidify/process_report.js";
 
-export class ProcessReport extends BundleReport {
+export class AlignProcessReport extends ProcessReport {
     mySourceProjectLoadFailed: boolean = false;
     myTargetProjectLoadFailed: boolean = false;
-    myProcessCompleted: boolean = false;
+    mySourceDuplicatedIDs: string[] = [];
+    myTargetDuplicatedIDs: string[] = [];
 }

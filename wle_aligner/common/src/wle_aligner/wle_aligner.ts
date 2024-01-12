@@ -1,10 +1,11 @@
 import { getProjectComponentsDefinitions } from "../common/bundle/component_utils.js";
+import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { Project } from "../common/project/project.js";
 import { alignProjects } from "./align_projects.js";
-import { ProcessReport } from "./process_report.js";
+import { AlignProcessReport } from "./process_report.js";
 
 export async function wleAligner(sourceProjectPath: string, targetProjectPath: string, commanderOptions: Record<string, string>) {
-    const processReport = new ProcessReport();
+    const processReport = new AlignProcessReport();
 
     const sourceProject = new Project();
     try {
@@ -21,7 +22,11 @@ export async function wleAligner(sourceProjectPath: string, targetProjectPath: s
     }
 
     if (!processReport.mySourceProjectLoadFailed && !processReport.myTargetProjectLoadFailed) {
-        const projectComponentsDefinitions = getProjectComponentsDefinitions(sourceProjectPath, commanderOptions, processReport);
+        let projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null = null;
+
+        if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+            projectComponentsDefinitions = getProjectComponentsDefinitions(sourceProjectPath, commanderOptions, processReport);
+        }
 
         if ((processReport.myEditorBundleError || processReport.myEditorBundleExtrasError) && commanderOptions.unsafe == null) {
             console.error("");
@@ -48,7 +53,7 @@ export async function wleAligner(sourceProjectPath: string, targetProjectPath: s
 
 // PRIVATE
 
-function _logAlignProjectsReport(commanderOptions: Record<string, string>, processReport: ProcessReport) {
+function _logAlignProjectsReport(commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
     console.error("");
 
     if (processReport.myProcessCompleted) {
@@ -57,16 +62,36 @@ function _logAlignProjectsReport(commanderOptions: Record<string, string>, proce
         console.log("ALIGN Failed");
     }
 
-    if (processReport.myEditorBundleIgnored) {
-        console.error("");
-        console.log("- editor bundle has been ignored, some properties might have been aligned even though they might have not represented the same on both projects");
+    if (processReport.mySourceDuplicatedIDs.length > 0 || processReport.myTargetDuplicatedIDs.length > 0) {
+        if (processReport.mySourceDuplicatedIDs.length > 0) {
+            console.error("");
+            console.log("- duplicated IDs have been found on the source project on different resources");
+            console.log("  please check these IDs and manually adjust them before attempting again to align the projects");
+            for (const duplicatedID of processReport.mySourceDuplicatedIDs) {
+                console.log("  - " + duplicatedID);
+            }
+        }
+
+        if (processReport.myTargetDuplicatedIDs.length > 0) {
+            console.error("");
+            console.log("- duplicated IDs have been found on the target project on different resources");
+            console.log("  please check these IDs and manually adjust them before attempting again to align the projects");
+            for (const duplicatedID of processReport.myTargetDuplicatedIDs) {
+                console.log("  - " + duplicatedID);
+            }
+        }
     } else {
-        if (processReport.myEditorBundleError) {
+        if (processReport.myEditorBundleIgnored) {
             console.error("");
-            console.log("- editor bundle errors have been occurred, some properties might have been aligned even though they might have not represented the same on both projects");
-        } else if (processReport.myEditorBundleExtrasError) {
-            console.error("");
-            console.log("- editor bundle extras errors have been occurred, some properties might have been aligned even though they might have not represented the same on both projects");
+            console.log("- editor bundle has been ignored, some properties might have been aligned even though they were not an ID");
+        } else {
+            if (processReport.myEditorBundleError) {
+                console.error("");
+                console.log("- editor bundle errors have been occurred, some properties might have been aligned even though they were not an ID");
+            } else if (processReport.myEditorBundleExtrasError) {
+                console.error("");
+                console.log("- editor bundle extras errors have been occurred, some properties might have been aligned even though they were not an ID");
+            }
         }
     }
 

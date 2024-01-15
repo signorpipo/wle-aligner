@@ -52,11 +52,11 @@ export function getJSONTokensHierarchy(findCallback: (tokenKey: string, tokenToC
     return jsonTokensByKey;
 }
 
-export function getEqualJSONToken(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true): ParentChildTokenPair | null {
+export function getEqualJSONToken(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true, tokensToIgnore: JSONToken[] = []): ParentChildTokenPair | null {
     let equalToken: ParentChildTokenPair | null = null;
 
     for (const [otherTokenKey, otherTokenToCheck] of parentObjectToken.getTokenEntries()) {
-        if (areTokensEqual(tokenToCheck, otherTokenToCheck, ignorePropertiesOrder)) {
+        if (tokensToIgnore.indexOf(otherTokenToCheck) == -1 && areTokensEqual(tokenToCheck, otherTokenToCheck, ignorePropertiesOrder)) {
             equalToken = new ParentChildTokenPair(parentObjectToken, otherTokenToCheck, otherTokenKey);
             break;
         }
@@ -65,7 +65,11 @@ export function getEqualJSONToken(tokenToCheck: JSONValueToken, parentObjectToke
     return equalToken;
 }
 
-export function areTokensEqual(firstToken: JSONValueToken, secondToken: JSONValueToken, ignorePropertiesOrder = true): boolean {
+export function areTokensEqual(firstToken: JSONValueToken | null | undefined, secondToken: JSONValueToken | null | undefined, ignorePropertiesOrder = true): boolean {
+    if (firstToken == null || secondToken == null) {
+        return firstToken == secondToken;
+    }
+
     if (!ignorePropertiesOrder || (firstToken.type != JSONTokenType.Object && firstToken.type != JSONTokenType.Array)) {
         return firstToken.evaluate() == secondToken.evaluate();
     }

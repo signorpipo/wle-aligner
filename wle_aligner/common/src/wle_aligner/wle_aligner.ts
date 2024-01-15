@@ -61,6 +61,7 @@ function _logAlignProjectsReport(commanderOptions: Record<string, string>, proce
     } else {
         console.log("ALIGN Failed");
     }
+
     if (processReport.myDuplicatedIDsAfterAlign.length > 0) {
         console.error("");
         console.log("- after the align some duplicated IDs have been found");

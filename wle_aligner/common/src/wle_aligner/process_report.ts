@@ -1,3 +1,4 @@
+import { JSONToken } from "@playkostudios/jsonc-ast";
 import { ProcessReport } from "../wle_uuidify/process_report.js";
 
 export class AlignProcessReport extends ProcessReport {
@@ -6,4 +7,5 @@ export class AlignProcessReport extends ProcessReport {
     mySourceDuplicatedIDs: string[] = [];
     myTargetDuplicatedIDs: string[] = [];
     myDuplicatedIDsAfterAlign: string[] = [];
+    myTokensReplaced: JSONToken[] = [];
 }

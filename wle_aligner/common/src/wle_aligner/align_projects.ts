@@ -8,7 +8,6 @@ import { ParentChildTokenPair, areTokensEqual, getEqualJSONTokens, replaceParent
 import { Project } from "../common/project/project.js";
 import { getDuplicateIDs, getIDTokens } from "../wle_uuidify/switch_to_uuid.js";
 import { AlignProcessReport } from "./process_report.js";
-import { equal } from "assert";
 
 export async function alignProjects(sourceProject: Project, targetProject: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
@@ -49,6 +48,18 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("shaders") >= 0) {
                 changedSomething = changedSomething || _alignShaders(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+            }
+
+            if (commanderOptions.filter == null || commanderOptions.filter.indexOf("animations") >= 0) {
+                changedSomething = changedSomething || _alignAnimations(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+            }
+
+            if (commanderOptions.filter == null || commanderOptions.filter.indexOf("skins") >= 0) {
+                changedSomething = changedSomething || _alignSkins(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+            }
+
+            if (commanderOptions.filter == null || commanderOptions.filter.indexOf("fonts") >= 0) {
+                changedSomething = changedSomething || _alignFonts(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
             }
 
         } while (changedSomething);
@@ -130,6 +141,36 @@ function _alignShaders(sourceProject: Project, targetProject: Project, targetIDT
     return changedSomething;
 }
 
+function _alignAnimations(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myAnimations, targetProject.myAnimations, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+    }
+
+    return changedSomething;
+}
+
+function _alignSkins(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.mySkins, targetProject.mySkins, targetIDTokens, ["link", "name", "joints"], commanderOptions, processReport);
+    }
+
+    return changedSomething;
+}
+
+function _alignFonts(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myFonts, targetProject.myFonts, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+    }
+
+    return changedSomething;
+}
+
 function _replaceID(oldID: string, newID: string, idTokens: ParentChildTokenPair[]) {
     for (const idTokenToReplace of idTokens) {
         const childID = StringToken.assert(idTokenToReplace.child).evaluate();
@@ -156,11 +197,6 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     }
 
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
-        const sourcePropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-        for (const propertyToCheck of propertiesToCheck) {
-            sourcePropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(sourceTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-        }
-
         let targetIDToReplace: string | null = null;
         let targetTokenToReplace: JSONToken | null = null;
         const equalTargetTokens = getEqualJSONTokens(sourceTokenToCheck, targetObjectToken, true);
@@ -182,7 +218,12 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                 targetIDToReplace = validEqualTokens[0]!.childKey;
                 targetTokenToReplace = validEqualTokens[0].child;
             }
-        } else if (commanderOptions.strict == null) {
+        } else if (commanderOptions.strict == null && propertiesToCheck.length > 0) {
+            const sourcePropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+            for (const propertyToCheck of propertiesToCheck) {
+                sourcePropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(sourceTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+            }
+
             for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
                 if (processReport.myTokensReplaced.indexOf(targetTokenToCheck) >= 0) continue;
 
@@ -249,43 +290,46 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
 function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: ObjectToken, targetObjectToken: ObjectToken, propertiesToCheck: string[]): boolean {
     let isUnique = true;
 
-    const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-    for (const propertyToCheck of propertiesToCheck) {
-        propertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(tokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-    }
+    if (propertiesToCheck.length > 0) {
+        // #TODO add check equal strict etc..
+        const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+        for (const propertyToCheck of propertiesToCheck) {
+            propertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(tokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+        }
 
-    for (const [otherID, otherTokenToCheck] of objectToken.getTokenEntries()) {
-        if (tokenID != otherID) {
-            const otherPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-            for (const propertyToCheck of propertiesToCheck) {
-                otherPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(otherTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-            }
+        for (const [otherID, otherTokenToCheck] of objectToken.getTokenEntries()) {
+            if (tokenID != otherID) {
+                const otherPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+                for (const propertyToCheck of propertiesToCheck) {
+                    otherPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(otherTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+                }
 
-            let areAllTokensEqual = true;
-            for (const [propertyName, propertyTokenToCheck] of propertiesTokensToCheck.entries()) {
-                areAllTokensEqual = areAllTokensEqual && areTokensEqual(propertyTokenToCheck, otherPropertiesTokensToCheck.get(propertyName));
-            }
+                let areAllTokensEqual = true;
+                for (const [propertyName, propertyTokenToCheck] of propertiesTokensToCheck.entries()) {
+                    areAllTokensEqual = areAllTokensEqual && areTokensEqual(propertyTokenToCheck, otherPropertiesTokensToCheck.get(propertyName));
+                }
 
-            if (areAllTokensEqual) {
-                const targetTokenToCheck = targetObjectToken.maybeGetValueTokenOfKey(otherID);
-                if (targetTokenToCheck != null) {
-                    const targetPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-                    for (const propertyToCheck of propertiesToCheck) {
-                        targetPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-                    }
+                if (areAllTokensEqual) {
+                    const targetTokenToCheck = targetObjectToken.maybeGetValueTokenOfKey(otherID);
+                    if (targetTokenToCheck != null) {
+                        const targetPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+                        for (const propertyToCheck of propertiesToCheck) {
+                            targetPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+                        }
 
-                    let areAllTokensEqualTarget = true;
-                    for (const [propertyName, propertyTokenToCheck] of otherPropertiesTokensToCheck.entries()) {
-                        areAllTokensEqualTarget = areAllTokensEqualTarget && areTokensEqual(propertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
-                    }
+                        let areAllTokensEqualTarget = true;
+                        for (const [propertyName, propertyTokenToCheck] of otherPropertiesTokensToCheck.entries()) {
+                            areAllTokensEqualTarget = areAllTokensEqualTarget && areTokensEqual(propertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
+                        }
 
-                    if (!areAllTokensEqualTarget) {
+                        if (!areAllTokensEqualTarget) {
+                            isUnique = false;
+                            break;
+                        }
+                    } else {
                         isUnique = false;
                         break;
                     }
-                } else {
-                    isUnique = false;
-                    break;
                 }
             }
         }

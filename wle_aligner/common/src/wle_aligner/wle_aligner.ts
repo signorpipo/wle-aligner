@@ -106,7 +106,7 @@ function _logAlignProjectsReport(commanderOptions: Record<string, string>, proce
             console.error("");
             console.log("- some resources have been aligned even if they were not unique");
             console.log("  the way they have been aligned is to just align them in order (first found in the source with the first found in the target, and so on)");
-            console.log("  these are the IDs that have been aligned this way");
+            console.log("  the following IDs have been aligned this way, you might want to check other similar resources in the project to be sure they have been properly aligned");
             for (const notUniqueResourceID of processReport.myNotUniqueResourceIDs) {
                 console.log("  - " + notUniqueResourceID);
             }

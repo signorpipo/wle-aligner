@@ -165,9 +165,14 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         let targetTokenToReplace: JSONToken | null = null;
         const equalTargetTokens = getEqualJSONTokens(sourceTokenToCheck, targetObjectToken, true);
         if (equalTargetTokens.length > 0) {
-            const validEqualTokens: ParentChildTokenPair[] = [];
+            let validEqualTokens: ParentChildTokenPair[] = [];
 
             for (const equalTargetToken of equalTargetTokens) {
+                if (sourceID == equalTargetToken.childKey!) {
+                    validEqualTokens = [];
+                    break;
+                }
+
                 if (sourceIDs.indexOf(equalTargetToken.childKey!) == -1 && processReport.myTokensReplaced.indexOf(equalTargetToken.child) == -1) {
                     validEqualTokens.push(equalTargetToken);
                 }

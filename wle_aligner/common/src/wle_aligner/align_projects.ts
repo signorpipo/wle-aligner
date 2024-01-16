@@ -4,10 +4,11 @@ import { JSONToken, JSONValueToken, ObjectToken, StringToken } from "@playkostud
 import path from "path";
 import isUUID from "validator/lib/isUUID.js";
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
-import { ParentChildTokenPair, areTokensEqual, getEqualJSONToken, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
+import { ParentChildTokenPair, areTokensEqual, getEqualJSONTokens, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
 import { Project } from "../common/project/project.js";
 import { getDuplicateIDs, getIDTokens } from "../wle_uuidify/switch_to_uuid.js";
 import { AlignProcessReport } from "./process_report.js";
+import { equal } from "assert";
 
 export async function alignProjects(sourceProject: Project, targetProject: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
@@ -149,6 +150,11 @@ function _isID(idToCheck: string): boolean {
 function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, targetObjectToken: ObjectToken, targetIDTokens: ParentChildTokenPair[] | null, propertiesToCheck: string[], commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
     let changedSomething = false;
 
+    const sourceIDs: string[] = [];
+    for (const [sourceID, __sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
+        sourceIDs.push(sourceID);
+    }
+
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
         const sourcePropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
         for (const propertyToCheck of propertiesToCheck) {
@@ -157,19 +163,25 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
 
         let targetIDToReplace: string | null = null;
         let targetTokenToReplace: JSONToken | null = null;
-        const equalTargetToken = getEqualJSONToken(sourceTokenToCheck, targetObjectToken, true, processReport.myTokensReplaced);
-        if (equalTargetToken != null) {
-            if (sourceID != equalTargetToken!.childKey!) {
-                targetIDToReplace = equalTargetToken!.childKey;
-                targetTokenToReplace = equalTargetToken.child;
-            } else {
-                processReport.myTokensReplaced.push(equalTargetToken.child);
+        const equalTargetTokens = getEqualJSONTokens(sourceTokenToCheck, targetObjectToken, true);
+        if (equalTargetTokens.length > 0) {
+            const validEqualTokens: ParentChildTokenPair[] = [];
+
+            for (const equalTargetToken of equalTargetTokens) {
+                if (sourceIDs.indexOf(equalTargetToken.childKey!) == -1 && processReport.myTokensReplaced.indexOf(equalTargetToken.child) == -1) {
+                    validEqualTokens.push(equalTargetToken);
+                }
+            }
+
+            if (validEqualTokens.length > 0) {
+                targetIDToReplace = validEqualTokens[0]!.childKey;
+                targetTokenToReplace = validEqualTokens[0].child;
             }
         } else if (commanderOptions.strict == null) {
             for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
                 if (processReport.myTokensReplaced.indexOf(targetTokenToCheck) >= 0) continue;
 
-                if (sourceID != targetID) {
+                if (sourceIDs.indexOf(targetID) == -1) {
                     const targetPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
                     for (const propertyToCheck of propertiesToCheck) {
                         targetPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));

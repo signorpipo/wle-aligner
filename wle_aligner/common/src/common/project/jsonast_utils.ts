@@ -52,17 +52,16 @@ export function getJSONTokensHierarchy(findCallback: (tokenKey: string, tokenToC
     return jsonTokensByKey;
 }
 
-export function getEqualJSONToken(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true, tokensToIgnore: JSONToken[] = []): ParentChildTokenPair | null {
-    let equalToken: ParentChildTokenPair | null = null;
+export function getEqualJSONTokens(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true, tokensToIgnore: JSONToken[] = []): ParentChildTokenPair[] {
+    const equalTokens: ParentChildTokenPair[] = [];
 
     for (const [otherTokenKey, otherTokenToCheck] of parentObjectToken.getTokenEntries()) {
         if (tokensToIgnore.indexOf(otherTokenToCheck) == -1 && areTokensEqual(tokenToCheck, otherTokenToCheck, ignorePropertiesOrder)) {
-            equalToken = new ParentChildTokenPair(parentObjectToken, otherTokenToCheck, otherTokenKey);
-            break;
+            equalTokens.push(new ParentChildTokenPair(parentObjectToken, otherTokenToCheck, otherTokenKey));
         }
     }
 
-    return equalToken;
+    return equalTokens;
 }
 
 export function areTokensEqual(firstToken: JSONValueToken | null | undefined, secondToken: JSONValueToken | null | undefined, ignorePropertiesOrder = true): boolean {

@@ -82,6 +82,10 @@ export function areTokensEqual(firstToken: JSONValueToken | null | undefined, se
         const firstObjectToken = ObjectToken.assert(firstToken);
         const secondObjectToken = ObjectToken.assert(secondToken);
 
+        if (firstObjectToken.getTokenEntries().length != secondObjectToken.getTokenEntries().length) {
+            return false;
+        }
+
         for (const [firstTokenKey, firstTokenToCheck] of firstObjectToken.getTokenEntries()) {
             let tokenFound = false;
             for (const [secondTokenKey, secondTokenToCheck] of secondObjectToken.getTokenEntries()) {

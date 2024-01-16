@@ -46,6 +46,10 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
                 changedSomething = changedSomething || _alignMaterials(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
             }
 
+            if (commanderOptions.filter == null || commanderOptions.filter.indexOf("shaders") >= 0) {
+                changedSomething = changedSomething || _alignShaders(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+            }
+
         } while (changedSomething);
 
         processReport.myDuplicatedIDsAfterAlign = getDuplicateIDs(targetProject);
@@ -79,7 +83,7 @@ function _alignMeshes(sourceProject: Project, targetProject: Project, targetIDTo
     let changedSomething = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        changedSomething = _replaceUniqueTokenWithSameProperties(sourceProject.myMeshes, targetProject.myMeshes, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myMeshes, targetProject.myMeshes, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return changedSomething;
@@ -89,7 +93,7 @@ function _alignTextures(sourceProject: Project, targetProject: Project, targetID
     let changedSomething = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        changedSomething = _replaceUniqueTokenWithSameProperties(sourceProject.myTextures, targetProject.myTextures, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myTextures, targetProject.myTextures, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return changedSomething;
@@ -99,7 +103,7 @@ function _alignImages(sourceProject: Project, targetProject: Project, targetIDTo
     let changedSomething = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        changedSomething = _replaceUniqueTokenWithSameProperties(sourceProject.myImages, targetProject.myImages, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myImages, targetProject.myImages, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return changedSomething;
@@ -109,7 +113,17 @@ function _alignMaterials(sourceProject: Project, targetProject: Project, targetI
     let changedSomething = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        changedSomething = _replaceUniqueTokenWithSameProperties(sourceProject.myMaterials, targetProject.myMaterials, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myMaterials, targetProject.myMaterials, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+    }
+
+    return changedSomething;
+}
+
+function _alignShaders(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myShaders, targetProject.myShaders, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return changedSomething;
@@ -132,28 +146,24 @@ function _isID(idToCheck: string): boolean {
     return isUUID(idToCheck);
 }
 
-function _replaceUniqueTokenWithSameProperties(sourceObjectToken: ObjectToken, targetObjectToken: ObjectToken, targetIDTokens: ParentChildTokenPair[] | null, propertiesToCheck: string[], commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, targetObjectToken: ObjectToken, targetIDTokens: ParentChildTokenPair[] | null, propertiesToCheck: string[], commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
     let changedSomething = false;
 
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
+        const sourcePropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+        for (const propertyToCheck of propertiesToCheck) {
+            sourcePropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(sourceTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+        }
+
+        let targetIDToReplace: string | null = null;
+        let targetTokenToReplace: JSONToken | null = null;
         const equalTargetToken = getEqualJSONToken(sourceTokenToCheck, targetObjectToken, true, processReport.myTokensReplaced);
         if (equalTargetToken != null) {
             if (sourceID != equalTargetToken!.childKey!) {
-                replaceParentTokenKey(equalTargetToken!.childKey!, sourceID, targetObjectToken);
-                _replaceID(equalTargetToken!.childKey!, sourceID, targetIDTokens!);
-                changedSomething = true;
-
-                processReport.myTokensReplaced.push(equalTargetToken.child);
+                targetIDToReplace = equalTargetToken!.childKey;
+                targetTokenToReplace = equalTargetToken.child;
             }
         } else if (commanderOptions.strict == null) {
-            const sourcePropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-            for (const propertyToCheck of propertiesToCheck) {
-                sourcePropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(sourceTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-            }
-
-            let targetIDToReplace: string | null = null;
-            let targetTokenToReplace: JSONToken | null = null;
-            let tokenIDFound = false;
             for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
                 if (processReport.myTokensReplaced.indexOf(targetTokenToCheck) >= 0) continue;
 
@@ -169,32 +179,71 @@ function _replaceUniqueTokenWithSameProperties(sourceObjectToken: ObjectToken, t
                     }
 
                     if (areAllTokensEqual) {
-                        if (tokenIDFound) {
-                            // More than one with the same name have been found, do not risk aligning this 
-                            targetIDToReplace = null;
-                            break;
-                        } else {
-                            tokenIDFound = true;
-                            targetIDToReplace = targetID;
-                            targetTokenToReplace = targetTokenToCheck;
-                        }
+                        targetIDToReplace = targetID;
+                        targetTokenToReplace = targetTokenToCheck;
+                        break;
                     }
                 } else {
-                    targetIDToReplace = null;
                     break;
                 }
             }
+        }
 
-            if (targetIDToReplace != null) {
-                replaceParentTokenKey(targetIDToReplace!, sourceID, targetObjectToken);
-                _replaceID(targetIDToReplace!, sourceID, targetIDTokens!);
+        if (targetIDToReplace != null && targetTokenToReplace != null) {
+            let canReplace = false;
+            if (commanderOptions.unsafe != null) {
+                canReplace = true;
+            } else {
+                const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, propertiesToCheck);
+
+                let isTargetTokenUnique = true;
+                if (isSourceTokenUnique) {
+                    isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, propertiesToCheck);
+                }
+
+                canReplace = isSourceTokenUnique && isTargetTokenUnique;
+            }
+
+            if (canReplace) {
+                replaceParentTokenKey(targetIDToReplace, sourceID, targetObjectToken);
+                _replaceID(targetIDToReplace, sourceID, targetIDTokens!);
+
+                processReport.myTokensReplaced.push(targetTokenToReplace);
 
                 changedSomething = true;
-
-                processReport.myTokensReplaced.push(targetTokenToReplace!);
             }
         }
     }
 
     return changedSomething;
+}
+
+function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: ObjectToken, propertiesToCheck: string[]): boolean {
+    let isUnique = true;
+
+    const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+    for (const propertyToCheck of propertiesToCheck) {
+        propertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(tokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+    }
+
+    for (const [otherID, otherTokenToCheck] of objectToken.getTokenEntries()) {
+        if (tokenID != otherID) {
+            const otherPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+            for (const propertyToCheck of propertiesToCheck) {
+                otherPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(otherTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+            }
+
+            let areAllTokensEqual = true;
+            for (const [propertyName, propertyTokenToCheck] of propertiesTokensToCheck.entries()) {
+                areAllTokensEqual = areAllTokensEqual && areTokensEqual(propertyTokenToCheck, otherPropertiesTokensToCheck.get(propertyName));
+            }
+
+            if (areAllTokensEqual) {
+                isUnique = false;
+                break;
+            }
+        }
+    }
+
+    return isUnique;
 }

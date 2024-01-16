@@ -162,6 +162,8 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
             if (sourceID != equalTargetToken!.childKey!) {
                 targetIDToReplace = equalTargetToken!.childKey;
                 targetTokenToReplace = equalTargetToken.child;
+            } else {
+                processReport.myTokensReplaced.push(equalTargetToken.child);
             }
         } else if (commanderOptions.strict == null) {
             for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
@@ -184,6 +186,10 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                         break;
                     }
                 } else {
+                    if (targetTokenToCheck != null) {
+                        processReport.myTokensReplaced.push(targetTokenToCheck);
+                    }
+
                     break;
                 }
             }
@@ -192,17 +198,18 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         if (targetIDToReplace != null && targetTokenToReplace != null) {
             let canReplace = false;
 
-            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, propertiesToCheck);
+            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheck);
 
             let isTargetTokenUnique = true;
             if (isSourceTokenUnique) {
-                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, propertiesToCheck);
+                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, sourceObjectToken, propertiesToCheck);
             }
 
             if (commanderOptions.unsafe != null) {
                 canReplace = true;
-
-                processReport.myNotUniqueResourceIDs.push(sourceID);
+                if (!isSourceTokenUnique || !isTargetTokenUnique) {
+                    processReport.myNotUniqueResourceIDs.push(sourceID);
+                }
             } else {
                 canReplace = isSourceTokenUnique && isTargetTokenUnique;
                 // skippare quelli che hanno stesso ID
@@ -222,7 +229,7 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     return changedSomething;
 }
 
-function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: ObjectToken, propertiesToCheck: string[]): boolean {
+function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: ObjectToken, targetObjectToken: ObjectToken, propertiesToCheck: string[]): boolean {
     let isUnique = true;
 
     const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
@@ -243,8 +250,26 @@ function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: O
             }
 
             if (areAllTokensEqual) {
-                isUnique = false;
-                break;
+                const targetTokenToCheck = targetObjectToken.maybeGetValueTokenOfKey(otherID);
+                if (targetTokenToCheck != null) {
+                    const targetPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
+                    for (const propertyToCheck of propertiesToCheck) {
+                        targetPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
+                    }
+
+                    let areAllTokensEqualTarget = true;
+                    for (const [propertyName, propertyTokenToCheck] of otherPropertiesTokensToCheck.entries()) {
+                        areAllTokensEqualTarget = areAllTokensEqualTarget && areTokensEqual(propertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
+                    }
+
+                    if (!areAllTokensEqualTarget) {
+                        isUnique = false;
+                        break;
+                    }
+                } else {
+                    isUnique = false;
+                    break;
+                }
             }
         }
     }

@@ -191,17 +191,21 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
 
         if (targetIDToReplace != null && targetTokenToReplace != null) {
             let canReplace = false;
+
+            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, propertiesToCheck);
+
+            let isTargetTokenUnique = true;
+            if (isSourceTokenUnique) {
+                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, propertiesToCheck);
+            }
+
             if (commanderOptions.unsafe != null) {
                 canReplace = true;
+
+                processReport.myNotUniqueResourceIDs.push(sourceID);
             } else {
-                const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, propertiesToCheck);
-
-                let isTargetTokenUnique = true;
-                if (isSourceTokenUnique) {
-                    isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, propertiesToCheck);
-                }
-
                 canReplace = isSourceTokenUnique && isTargetTokenUnique;
+                // skippare quelli che hanno stesso ID
             }
 
             if (canReplace) {

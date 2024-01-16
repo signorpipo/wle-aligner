@@ -8,4 +8,5 @@ export class AlignProcessReport extends ProcessReport {
     myTargetDuplicatedIDs: string[] = [];
     myDuplicatedIDsAfterAlign: string[] = [];
     myTokensReplaced: JSONToken[] = [];
+    myNotUniqueResourceIDs: string[] = [];
 }

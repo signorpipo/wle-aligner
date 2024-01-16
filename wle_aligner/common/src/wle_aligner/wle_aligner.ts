@@ -101,6 +101,16 @@ function _logAlignProjectsReport(commanderOptions: Record<string, string>, proce
                 console.log("- editor bundle extras errors have been occurred, some properties might have been aligned even though they were not an ID");
             }
         }
+
+        if (processReport.myNotUniqueResourceIDs.length > 0) {
+            console.error("");
+            console.log("- some resources have been aligned even if they were not unique");
+            console.log("  the way they have been aligned is to just align them in order (first found in the source with the first found in the target)");
+            console.log("  these are the IDs that have been aligned this way");
+            for (const notUniqueResourceID of processReport.myNotUniqueResourceIDs) {
+                console.log("  - " + notUniqueResourceID);
+            }
+        }
     }
 
     console.log("");

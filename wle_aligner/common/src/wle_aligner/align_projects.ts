@@ -27,47 +27,69 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
             changedSomething = false;
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("objects") >= 0) {
-                changedSomething = changedSomething || _alignObjects();
+                const currentChangedSomething = _alignObjects(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("objects", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("meshes") >= 0) {
-                changedSomething = changedSomething || _alignMeshes(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignMeshes(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("meshes", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("textures") >= 0) {
-                changedSomething = changedSomething || _alignTextures(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignTextures(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("textures", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("images") >= 0) {
-                changedSomething = changedSomething || _alignImages(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignImages(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("images", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("materials") >= 0) {
-                changedSomething = changedSomething || _alignMaterials(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignMaterials(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("materials", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("shaders") >= 0) {
-                changedSomething = changedSomething || _alignShaders(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignShaders(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("shaders", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("animations") >= 0) {
-                changedSomething = changedSomething || _alignAnimations(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignAnimations(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("animations", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("skins") >= 0) {
-                changedSomething = changedSomething || _alignSkins(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignSkins(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("skins", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("pipelines") >= 0) {
-                changedSomething = changedSomething || _alignPipelines(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignPipelines(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("pipelines", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("files") >= 0) {
-                changedSomething = changedSomething || _alignFiles(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignFiles(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("files", changedSomething);
             }
 
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("fonts") >= 0) {
-                changedSomething = changedSomething || _alignFonts(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                const currentChangedSomething = _alignFonts(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+                changedSomething = changedSomething || currentChangedSomething;
+                //if (currentChangedSomething) console.error("fonts", changedSomething);
             }
 
         } while (changedSomething);
@@ -92,11 +114,14 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
 
 // PRIVATE
 
-function _alignObjects(): boolean {
-    const changedSomething = false;
+function _alignObjects(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myObjects, targetProject.myObjects, targetIDTokens, ["link", "name", "parent"], commanderOptions, processReport);
+    }
 
     return changedSomething;
-
 }
 
 function _alignMeshes(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {

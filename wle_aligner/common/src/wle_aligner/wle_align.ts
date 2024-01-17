@@ -102,6 +102,12 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
             console.log("ALIGN completed for all projects");
             console.log("");
         }
+
+        if (currentAlignCount == 1) {
+            console.log("");
+            console.log("No valid target project path have been specified");
+            console.log("");
+        }
     } catch (error) {
         if (error instanceof CommanderError) {
             program.error(error.message, { exitCode: error.exitCode, code: error.code });

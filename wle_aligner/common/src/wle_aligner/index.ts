@@ -5,7 +5,7 @@ import { wleAligner } from "./wle_aligner.js";
 
 program
     .argument("<source-project-path>", "file path to the source Wonderland Engine project file")
-    .argument("<target-project-path>", "file path to the target Wonderland Engine project file, that will be aligned to the source one")
+    .argument("<target-project-path>", "file path to the target Wonderland Engine project file, that will be aligned to the source one\rit's assumed that the project does not have IDs in common, or, if it does, those IDs already represent the same resources on the source project")
     .option("-o, --output <path>", "where the aligned target project file will be stored\r (default: \"<target-project-dir>/target-<target-project-name>\")")
     .option("-r, --replace", "replace the original target project, ignoring the output option, if specified")
     .option("-u, --unsafe", "align the projects properties even if they might not represent the same on both projects")

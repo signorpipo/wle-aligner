@@ -9,6 +9,9 @@ import { AlignProcessReport } from "./align_process_report.js";
 
 export async function wleAlignProjects(sourceProjectGlobPath: string, targetProjectGlobPaths: string[], commanderOptions: Record<string, string>) {
     try {
+        const sourceProjectPathsRaw = globSync(sourceProjectGlobPath);
+        const sourceProjectPath = resolvePath(sourceProjectPathsRaw[0]);
+
         const targetProjectPaths: string[] = [];
         for (const targetProjectGlobRaw of targetProjectGlobPaths) {
             const targetProjectPathsRaw = globSync(targetProjectGlobRaw);
@@ -34,13 +37,13 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
 
         let sourceProjectPaths: string[] = [];
         if (commanderOptions.allCombinations == null) {
-            sourceProjectPaths.push(resolvePath(sourceProjectGlobPath));
+            sourceProjectPaths.push(sourceProjectPath);
         } else {
-            const sourceProjectPathIndex = targetProjectPaths.indexOf(resolvePath(sourceProjectGlobPath));
+            const sourceProjectPathIndex = targetProjectPaths.indexOf(sourceProjectPath);
             if (sourceProjectPathIndex >= 0) {
                 targetProjectPaths.splice(sourceProjectPathIndex, 1);
             }
-            targetProjectPaths.unshift(resolvePath(sourceProjectGlobPath));
+            targetProjectPaths.unshift(sourceProjectPath);
 
             sourceProjectPaths = targetProjectPaths.slice(0);
         }

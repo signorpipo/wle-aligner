@@ -4,7 +4,7 @@ import { Option, program } from "commander";
 import { wleAlignProjects } from "./wle_align.js";
 
 program
-    .argument("<source-project-path>", "file path to the source Wonderland Engine project file")
+    .argument("<source-project-path>", "file path to the source Wonderland Engine project file\rthe path is a glob pattern, and if it resolves to multiple paths, the first one will be used")
     .argument("<target-project-path...>", "file paths to the target Wonderland Engine project files, that will be aligned to the source one\rit's assumed that the project does not have IDs in common, or, if it does, those IDs already represent the same resources on the source project\reach path is a glob pattern")
     .option("-o, --output <path>", "where the aligned target project file will be stored\r (default: \"<target-project-dir>/target-<target-project-name>\")")
     .option("-r, --replace", "replace the original target project, ignoring the output option, if specified")

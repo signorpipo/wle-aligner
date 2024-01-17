@@ -27,6 +27,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
             }
         }
 
+        const failedProjectPaths: string[] = [];
         for (let i = 0; i < projectPaths.length; i++) {
             if (i > 0) {
                 console.log("-");
@@ -40,7 +41,18 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
                 uuidifyPrefix = (i + 1) + " / " + projectPaths.length + " - " + parsePath(projectPath).base;
             }
 
-            await wleUUIDify(projectPath, uuidifyPrefix, commanderOptions);
+            if (!await wleUUIDify(projectPath, uuidifyPrefix, commanderOptions)) {
+                failedProjectPaths.push(parsePath(projectPath).base);
+            }
+        }
+
+        if (failedProjectPaths.length > 0) {
+            console.log("-");
+            console.log("");
+            console.log("UUIDIFY failed for the following projects");
+            for (const failedProjectPath of failedProjectPaths) {
+                console.log("  - " + failedProjectPath);
+            }
         }
 
     } catch (error) {
@@ -54,7 +66,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
     }
 }
 
-export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, commanderOptions: Record<string, string>) {
+export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, commanderOptions: Record<string, string>): Promise<boolean> {
     if (uuidifyPrefix.length > 0) {
         console.log("UUIDIFY " + uuidifyPrefix);
     }
@@ -101,6 +113,8 @@ export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, com
         console.log("Project load failed");
         console.log("");
     }
+
+    return processReport.myProcessCompleted;
 }
 
 

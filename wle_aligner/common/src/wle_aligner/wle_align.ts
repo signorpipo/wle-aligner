@@ -68,19 +68,18 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
                 }
 
                 const targetProjectPath = sourceTargetProjectPaths[i];
-                if (targetProjectPath == lastTargetProjectPath) {
-                    // #WARN This is done to hotfix an issue where waiting for the file to be written does not actually wait until it's over
-                    await new Promise(resolve => setTimeout(resolve, 4000));
-                }
-
-                lastTargetProjectPath = targetProjectPath;
 
                 let alignPrefix = " - source: " + parsePath(sourceProjectPath).base + " / " + "target: " + parsePath(targetProjectPath).base;
                 if (totalAlignToPerform > 1) {
                     alignPrefix = currentAlignCount + " / " + totalAlignToPerform + alignPrefix;
                 }
-
                 currentAlignCount++;
+
+                if (targetProjectPath == lastTargetProjectPath || sourceProjectPath == lastTargetProjectPath) {
+                    // #WARN This is done to hotfix an issue where waiting for the file to be written does not actually wait until it's over
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+                }
+                lastTargetProjectPath = targetProjectPath;
 
                 if (!await wleAlign(sourceProjectPath, targetProjectPath, alignPrefix, commanderOptions)) {
                     failedProjectPathPairs.push([parsePath(sourceProjectPath).base, parsePath(targetProjectPath).base]);

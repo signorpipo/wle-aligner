@@ -6,7 +6,7 @@ import { Project } from "../common/project/project.js";
 import { ProcessReport } from "./process_report.js";
 import { getDuplicateIDs, switchToUUID } from "./switch_to_uuid.js";
 
-export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOptions: Record<string, string>) {
+export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOptions: Record<string, string>) {
     try {
         const projectPaths: string[] = [];
         for (const projectGlobRaw of projectGlobPaths) {
@@ -23,7 +23,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
             }
 
             if (projectPaths.length > 1) {
-                throw new CommanderError(1, "output-multiple-proj-clash", "--output option cannot be used when multiple projects are specified\n");
+                throw new CommanderError(1, "output-multiple-projects-clash", "--output option cannot be used when multiple projects are specified\n");
             }
         }
 
@@ -38,7 +38,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
 
             let uuidifyPrefix = parsePath(projectPath).base;
             if (projectPaths.length > 1) {
-                uuidifyPrefix = (i + 1) + " / " + projectPaths.length + " - " + parsePath(projectPath).base;
+                uuidifyPrefix = (i + 1) + " / " + projectPaths.length + " - " + uuidifyPrefix;
             }
 
             if (!await wleUUIDify(projectPath, uuidifyPrefix, commanderOptions)) {
@@ -53,8 +53,13 @@ export async function wleUUIDifyProjects(projectGlobPaths: string, commanderOpti
             for (const failedProjectPath of failedProjectPaths) {
                 console.log("  - " + failedProjectPath);
             }
+            console.log("");
+        } else if (projectPaths.length > 0) {
+            console.log("-");
+            console.log("");
+            console.log("UUIDIFY completed for all projects");
+            console.log("");
         }
-
     } catch (error) {
         if (error instanceof CommanderError) {
             program.error(error.message, { exitCode: error.exitCode, code: error.code });

@@ -21,14 +21,14 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
         const duplicatedIDsAfterSwitch = getDuplicateIDs(project);
         if (duplicatedIDsAfterSwitch.length == 0) {
             if (commanderOptions.replace != null) {
-                project.save();
+                await project.save();
             } else {
                 if (commanderOptions.output != null) {
-                    project.save(resolvePath(commanderOptions.output));
+                    await project.save(resolvePath(commanderOptions.output));
                 } else {
                     const uudifiedPath = parsePath(project.myPath);
                     uudifiedPath.base = "uuidified-" + uudifiedPath.base;
-                    project.save(formatPath(uudifiedPath));
+                    await project.save(formatPath(uudifiedPath));
                 }
             }
             processReport.myProcessCompleted = true;

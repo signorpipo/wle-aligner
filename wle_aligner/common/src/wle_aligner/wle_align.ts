@@ -5,7 +5,7 @@ import { getProjectComponentsDefinitions } from "../common/bundle/component_util
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { Project } from "../common/project/project.js";
 import { alignProjects } from "./align_projects.js";
-import { AlignProcessReport } from "./process_report.js";
+import { AlignProcessReport } from "./align_process_report.js";
 
 export async function wleAlignProjects(sourceProjectGlobPath: string, targetProjectGlobPaths: string[], commanderOptions: Record<string, string>) {
     try {
@@ -20,7 +20,7 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
 
         if (commanderOptions.output != null) {
             if (commanderOptions.replace != null) {
-                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace flag\n");
+                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace option\n");
             }
 
             if (targetProjectPaths.length > 1) {
@@ -28,34 +28,69 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
             }
         }
 
+        if (commanderOptions.allCombinations != null && commanderOptions.replace == null) {
+            throw new CommanderError(1, "all-combinations-replace-clash", "--all-combinations option can be used only when the --replace option is also specified\n");
+        }
+
+        let sourceProjectPaths: string[] = [];
+        if (commanderOptions.allCombinations == null) {
+            sourceProjectPaths.push(resolvePath(sourceProjectGlobPath));
+        } else {
+            if (targetProjectPaths.indexOf(resolvePath(sourceProjectGlobPath)) == -1) {
+                targetProjectPaths.push(resolvePath(sourceProjectGlobPath));
+            }
+
+            sourceProjectPaths = targetProjectPaths.slice(0);
+        }
+
+        let totalAlignToPerform = 0;
+        const alignProjectPathMap = new Map<string, string[]>();
+        for (let i = 0; i < sourceProjectPaths.length; i++) {
+            const sourceProjectPath = sourceProjectPaths[i];
+            const sourceIndex = targetProjectPaths.indexOf(sourceProjectPath);
+            if (sourceIndex >= 0) {
+                targetProjectPaths.splice(sourceIndex, 1);
+            }
+            totalAlignToPerform += targetProjectPaths.length;
+            alignProjectPathMap.set(sourceProjectPath, targetProjectPaths.slice(0));
+        }
+
+        let currentAlignCount = 1;
         const failedProjectPathPairs: string[][] = [];
-        for (let i = 0; i < targetProjectPaths.length; i++) {
-            if (i > 0) {
-                console.log("-");
-                console.log("");
-            }
+        for (const [sourceProjectPath, sourceTargetProjectPaths] of alignProjectPathMap.entries()) {
+            for (let i = 0; i < sourceTargetProjectPaths.length; i++) {
+                if (currentAlignCount > 1) {
+                    console.log("-");
+                    console.log("");
+                }
 
-            const targetProjectPath = targetProjectPaths[i];
+                const targetProjectPath = sourceTargetProjectPaths[i];
 
-            let alignPrefix = " - source: " + parsePath(resolvePath(sourceProjectGlobPath)).base + " / " + "target: " + parsePath(targetProjectPath).base;
-            if (targetProjectPaths.length > 1) {
-                alignPrefix = (i + 1) + " / " + targetProjectPaths.length + alignPrefix;
-            }
+                let alignPrefix = " - source: " + parsePath(sourceProjectPath).base + " / " + "target: " + parsePath(targetProjectPath).base;
+                if (totalAlignToPerform > 1) {
+                    alignPrefix = currentAlignCount + " / " + totalAlignToPerform + alignPrefix;
+                }
 
-            if (!await wleAlign(resolvePath(sourceProjectGlobPath), targetProjectPath, alignPrefix, commanderOptions)) {
-                failedProjectPathPairs.push([parsePath(resolvePath(sourceProjectGlobPath)).base, parsePath(targetProjectPath).base]);
+                currentAlignCount++;
+
+                if (sourceProjectPath != targetProjectPath) {
+                    // #TODO escluderli dal conteggio
+                    if (!await wleAlign(sourceProjectPath, targetProjectPath, alignPrefix, commanderOptions)) {
+                        failedProjectPathPairs.push([parsePath(sourceProjectPath).base, parsePath(targetProjectPath).base]);
+                    }
+                }
             }
         }
 
         if (failedProjectPathPairs.length > 0) {
             console.log("-");
             console.log("");
-            console.log("ALIGN failed for the following projects pair");
+            console.log("ALIGN failed for the following project pairs");
             for (const failedProjectPathPair of failedProjectPathPairs) {
                 console.log("  - source: " + failedProjectPathPair[0] + " / " + "target: " + failedProjectPathPair[1]);
             }
             console.log("");
-        } else if (targetProjectPaths.length > 0) {
+        } else if (totalAlignToPerform > 1) {
             console.log("-");
             console.log("");
             console.log("ALIGN completed for all projects");

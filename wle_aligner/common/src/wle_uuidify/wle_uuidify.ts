@@ -19,7 +19,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOp
 
         if (commanderOptions.output != null) {
             if (commanderOptions.replace != null) {
-                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace flag\n");
+                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace option\n");
             }
 
             if (projectPaths.length > 1) {

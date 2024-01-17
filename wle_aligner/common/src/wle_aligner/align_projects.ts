@@ -58,6 +58,10 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
                 changedSomething = changedSomething || _alignSkins(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
             }
 
+            if (commanderOptions.filter == null || commanderOptions.filter.indexOf("pipelines") >= 0) {
+                changedSomething = changedSomething || _alignPipelines(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
+            }
+
             if (commanderOptions.filter == null || commanderOptions.filter.indexOf("fonts") >= 0) {
                 changedSomething = changedSomething || _alignFonts(sourceProject, targetProject, targetIDTokens, commanderOptions, processReport);
             }
@@ -156,6 +160,16 @@ function _alignSkins(sourceProject: Project, targetProject: Project, targetIDTok
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
         changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.mySkins, targetProject.mySkins, targetIDTokens, ["link", "name", "joints"], commanderOptions, processReport);
+    }
+
+    return changedSomething;
+}
+
+function _alignPipelines(sourceProject: Project, targetProject: Project, targetIDTokens: ParentChildTokenPair[] | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {
+    let changedSomething = false;
+
+    if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        changedSomething = _replaceIDOfTokensWithSameProperties(sourceProject.myPipelines, targetProject.myPipelines, targetIDTokens, ["link", "name", "shader"], commanderOptions, processReport);
     }
 
     return changedSomething;

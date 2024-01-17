@@ -2,10 +2,10 @@ import { ArrayToken, JSONParentToken, JSONToken, JSONTokenType, JSONValueToken, 
 
 export class ParentChildTokenPair {
     parent: JSONParentToken;
-    child: JSONToken;
+    child: JSONValueToken;
     childKey: string | null;
 
-    constructor(parent: JSONParentToken, child: JSONToken, childKey: string | null = null) {
+    constructor(parent: JSONParentToken, child: JSONValueToken, childKey: string | null = null) {
         this.parent = parent;
         this.child = child;
         this.childKey = childKey;
@@ -52,11 +52,11 @@ export function getJSONTokensHierarchy(findCallback: (tokenKey: string, tokenToC
     return jsonTokensByKey;
 }
 
-export function getEqualJSONTokens(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true, tokensToIgnore: JSONToken[] = []): ParentChildTokenPair[] {
+export function getEqualJSONTokens(tokenToCheck: JSONValueToken, parentObjectToken: ObjectToken, ignorePropertiesOrder = true): ParentChildTokenPair[] {
     const equalTokens: ParentChildTokenPair[] = [];
 
     for (const [otherTokenKey, otherTokenToCheck] of parentObjectToken.getTokenEntries()) {
-        if (tokensToIgnore.indexOf(otherTokenToCheck) == -1 && areTokensEqual(tokenToCheck, otherTokenToCheck, ignorePropertiesOrder)) {
+        if (areTokensEqual(tokenToCheck, otherTokenToCheck, ignorePropertiesOrder)) {
             equalTokens.push(new ParentChildTokenPair(parentObjectToken, otherTokenToCheck, otherTokenKey));
         }
     }

@@ -1,6 +1,6 @@
 // #CREDITS https://github.com/playkostudios/wle-cleaner
 
-import { JSONToken, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
+import { JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import path from "path";
 import isUUID from "validator/lib/isUUID.js";
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
@@ -197,10 +197,14 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     }
 
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
+        let strictCheckUsed = false;
+
         let targetIDToReplace: string | null = null;
-        let targetTokenToReplace: JSONToken | null = null;
+        let targetTokenToReplace: JSONValueToken | null = null;
         const equalTargetTokens = getEqualJSONTokens(sourceTokenToCheck, targetObjectToken, true);
         if (equalTargetTokens.length > 0) {
+            strictCheckUsed = true;
+
             let validEqualTokens: ParentChildTokenPair[] = [];
 
             for (const equalTargetToken of equalTargetTokens) {
@@ -256,11 +260,11 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         if (targetIDToReplace != null && targetTokenToReplace != null) {
             let canReplace = false;
 
-            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheck);
+            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheck, strictCheckUsed);
 
             let isTargetTokenUnique = true;
             if (isSourceTokenUnique) {
-                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, sourceObjectToken, propertiesToCheck);
+                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, sourceObjectToken, propertiesToCheck, strictCheckUsed);
             }
 
             if (commanderOptions.unsafe != null) {
@@ -287,10 +291,24 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     return changedSomething;
 }
 
-function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: ObjectToken, targetObjectToken: ObjectToken, propertiesToCheck: string[]): boolean {
+function _isTokenUnique(tokenID: string, tokenToCheck: JSONValueToken, objectToken: ObjectToken, targetObjectToken: ObjectToken, propertiesToCheck: string[], strictCheckUsed: boolean): boolean {
     let isUnique = true;
 
-    if (propertiesToCheck.length > 0) {
+    if (strictCheckUsed) {
+        const equalTargetTokens = getEqualJSONTokens(tokenToCheck, objectToken, true);
+        if (equalTargetTokens.length > 0) {
+            for (const equalTargetToken of equalTargetTokens) {
+                if (tokenID != equalTargetToken.childKey!) {
+                    const targetTokenToCheck = targetObjectToken.maybeGetValueTokenOfKey(equalTargetToken.childKey!);
+                    // If the ID is also in the other project, it's assumed it must be the same resource and therefore it's not counted as a duplicate
+                    if (targetTokenToCheck == null) {
+                        isUnique = false;
+                        break;
+                    }
+                }
+            }
+        }
+    } else if (propertiesToCheck.length > 0) {
         // #TODO add check equal strict etc..
         const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
         for (const propertyToCheck of propertiesToCheck) {
@@ -311,22 +329,8 @@ function _isTokenUnique(tokenID: string, tokenToCheck: JSONToken, objectToken: O
 
                 if (areAllTokensEqual) {
                     const targetTokenToCheck = targetObjectToken.maybeGetValueTokenOfKey(otherID);
-                    if (targetTokenToCheck != null) {
-                        const targetPropertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
-                        for (const propertyToCheck of propertiesToCheck) {
-                            targetPropertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(targetTokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));
-                        }
-
-                        let areAllTokensEqualTarget = true;
-                        for (const [propertyName, propertyTokenToCheck] of otherPropertiesTokensToCheck.entries()) {
-                            areAllTokensEqualTarget = areAllTokensEqualTarget && areTokensEqual(propertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
-                        }
-
-                        if (!areAllTokensEqualTarget) {
-                            isUnique = false;
-                            break;
-                        }
-                    } else {
+                    // If the ID is also in the other project, it's assumed it must be the same resource and therefore it's not counted as a duplicate
+                    if (targetTokenToCheck == null) {
                         isUnique = false;
                         break;
                     }

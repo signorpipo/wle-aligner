@@ -61,7 +61,6 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
         }
 
         let currentAlignCount = 1;
-        let lastTargetProjectPath = "";
         const failedProjectPathPairs: string[][] = [];
         for (const [sourceProjectPath, sourceTargetProjectPaths] of alignProjectPathMap.entries()) {
             for (let i = 0; i < sourceTargetProjectPaths.length; i++) {
@@ -77,12 +76,6 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
                     alignPrefix = currentAlignCount + " / " + totalAlignToPerform + alignPrefix;
                 }
                 currentAlignCount++;
-
-                if (targetProjectPath == lastTargetProjectPath || sourceProjectPath == lastTargetProjectPath) {
-                    // #WARN This is done to hotfix an issue where waiting for the file to be written does not actually wait until it's over
-                    await new Promise(resolve => setTimeout(resolve, 4000));
-                }
-                lastTargetProjectPath = targetProjectPath;
 
                 if (!await wleAlign(sourceProjectPath, targetProjectPath, alignPrefix, commanderOptions)) {
                     failedProjectPathPairs.push([parsePath(sourceProjectPath).base, parsePath(targetProjectPath).base]);

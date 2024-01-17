@@ -36,9 +36,11 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
         if (commanderOptions.allCombinations == null) {
             sourceProjectPaths.push(resolvePath(sourceProjectGlobPath));
         } else {
-            if (targetProjectPaths.indexOf(resolvePath(sourceProjectGlobPath)) == -1) {
-                targetProjectPaths.push(resolvePath(sourceProjectGlobPath));
+            const sourceProjectPathIndex = targetProjectPaths.indexOf(resolvePath(sourceProjectGlobPath));
+            if (sourceProjectPathIndex >= 0) {
+                targetProjectPaths.splice(sourceProjectPathIndex, 1);
             }
+            targetProjectPaths.unshift(resolvePath(sourceProjectGlobPath));
 
             sourceProjectPaths = targetProjectPaths.slice(0);
         }
@@ -56,6 +58,7 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
         }
 
         let currentAlignCount = 1;
+        let lastTargetProjectPath = "";
         const failedProjectPathPairs: string[][] = [];
         for (const [sourceProjectPath, sourceTargetProjectPaths] of alignProjectPathMap.entries()) {
             for (let i = 0; i < sourceTargetProjectPaths.length; i++) {
@@ -65,6 +68,12 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
                 }
 
                 const targetProjectPath = sourceTargetProjectPaths[i];
+                if (targetProjectPath == lastTargetProjectPath) {
+                    // #WARN This is done to hotfix an issue where waiting for the file to be written does not actually wait until it's over
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+                }
+
+                lastTargetProjectPath = targetProjectPath;
 
                 let alignPrefix = " - source: " + parsePath(sourceProjectPath).base + " / " + "target: " + parsePath(targetProjectPath).base;
                 if (totalAlignToPerform > 1) {
@@ -73,11 +82,8 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
 
                 currentAlignCount++;
 
-                if (sourceProjectPath != targetProjectPath) {
-                    // #TODO escluderli dal conteggio
-                    if (!await wleAlign(sourceProjectPath, targetProjectPath, alignPrefix, commanderOptions)) {
-                        failedProjectPathPairs.push([parsePath(sourceProjectPath).base, parsePath(targetProjectPath).base]);
-                    }
+                if (!await wleAlign(sourceProjectPath, targetProjectPath, alignPrefix, commanderOptions)) {
+                    failedProjectPathPairs.push([parsePath(sourceProjectPath).base, parsePath(targetProjectPath).base]);
                 }
             }
         }
@@ -125,6 +131,7 @@ export async function wleAlign(sourceProjectPath: string, targetProjectPath: str
     try {
         await targetProject.load(targetProjectPath);
     } catch (error) {
+        console.error(error);
         processReport.myTargetProjectLoadFailed = true;
     }
 

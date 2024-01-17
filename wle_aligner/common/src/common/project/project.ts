@@ -64,6 +64,6 @@ export class Project {
     }
 
     async save(newPath: string = "") {
-        await this._myJSONAST.writeToFile(newPath.length > 0 ? newPath : this.myPath);
+        this._myJSONAST.writeToFile(newPath.length > 0 ? newPath : this.myPath);
     }
 }

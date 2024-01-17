@@ -364,7 +364,6 @@ function _isTokenUnique(tokenID: string, tokenToCheck: JSONValueToken, objectTok
             }
         }
     } else if (propertiesToCheck.length > 0) {
-        // #TODO add check equal strict etc..
         const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
         for (const propertyToCheck of propertiesToCheck) {
             propertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(tokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));

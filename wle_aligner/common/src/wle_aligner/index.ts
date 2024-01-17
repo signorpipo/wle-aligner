@@ -4,12 +4,12 @@ import { Option, program } from "commander";
 import { wleAlignProjects } from "./wle_align.js";
 
 program
-    .argument("<source-project-path>", "file path to the source Wonderland Engine project file\rthe path is a glob pattern, and if it resolves to multiple paths, the first one will be used")
-    .argument("<target-project-path...>", "file paths to the target Wonderland Engine project files, that will be aligned to the source one\rit's assumed that the project does not have IDs in common, or, if it does, those IDs already represent the same resources on the source project\reach path is a glob pattern")
+    .argument("<source-project-path>", "file path to the source Wonderland Engine project file\rthe path is a glob pattern, and if it resolves to multiple paths, the first one will be used\ryou can use \"*.wlp\" to use the first wlp found in your folder as the source project")
+    .argument("<target-project-paths...>", "file paths to the target Wonderland Engine project files, that will be aligned to the source one\rit's assumed that the project does not have IDs in common, or, if it does, those IDs already represent the same resources on the source project\reach path is a glob pattern\ryou can use \"*.wlp\" to align every wlps in your folder with the specified source project")
     .option("-o, --output <path>", "where the aligned target project file will be stored\r (default: \"<target-project-dir>/target-<target-project-name>\")")
     .option("-r, --replace", "replace the original target project, ignoring the output option, if specified")
     .option("-u, --unsafe", "align the projects properties even if they might not represent the same on both projects")
-    .option("-a, --all-combinations", "align every specified project with the others\rcan be used only when the --replace option is also specified")
+    .option("-a, --all-combinations", "align every specified project with the others\rcan be used only when the --replace option is also specified\ryou can use \"*.wlp\" as both the source and the target project path to align every wlps in your folder")
     .option("-s, --strict", "align only the resources that contains the same value for all their properties, instead of guessing it just through the name, linked assets, or similar \"identifiers\" properties")
     .addOption(new Option("-a, --align <properties...>", "align only the specified resource properties\r")
         .choices(["ids"]))

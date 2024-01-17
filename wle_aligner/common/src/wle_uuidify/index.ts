@@ -4,7 +4,7 @@ import { program } from "commander";
 import { wleUUIDifyProjects } from "./wle_uuidify.js";
 
 program
-    .argument("<project-path...>", "file paths to the Wonderland Engine project files that need to be uuidified\reach path is a glob pattern")
+    .argument("<project-paths...>", "file paths to the Wonderland Engine project files that need to be uuidified\reach path is a glob pattern\ryou can use \"*.wlp\" to uuidify every wlps in your folder")
     .option("-o, --output <path>", "where the uuidified project file will be stored\r (default: \"<project-dir>/uuidified-<project-name>\")")
     .option("-r, --replace", "replace the original project, ignoring the output option, if specified")
     .option("-u, --unsafe", "uuidify the project even if there is no bundle, it contains errors, or for component properties that might not be incremental number IDs")

@@ -2,6 +2,7 @@
 
 import { readFileSync } from "fs";
 import ivm from "isolated-vm";
+import { parse as parsePath, resolve as resolvePath } from 'node:path';
 import path from "path";
 import { BundleReport } from "./bundle_report.js";
 import { ModifiedComponentPropertyRecord } from "./modified_component_property.js";
@@ -37,7 +38,13 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
 
     let editorBundleText = "";
     if (!ignoreEditorBundle) {
-        const editorBundlePath = commanderOptions.editorBundle;
+        let editorBundlePath = commanderOptions.editorBundle;
+        if (editorBundlePath == null) {
+            editorBundlePath = resolvePath(parsePath(projectPath).dir, "cache/js/_editor_bundle.cjs");
+        } else {
+            editorBundlePath = resolvePath(editorBundlePath);
+        }
+
         try {
             editorBundleText = readFileSync(editorBundlePath, { encoding: "utf8" });
         } catch (error) {
@@ -47,7 +54,13 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
     }
 
     let editorBundleExtrasText = "";
-    const editorBundleExtrasPath = commanderOptions.editorBundleExtras;
+    let editorBundleExtrasPath = commanderOptions.editorBundleExtras;
+    if (editorBundleExtrasPath == null) {
+        editorBundleExtrasPath = resolvePath(parsePath(projectPath).dir, "editor-bundle-extras.js");
+    } else {
+        editorBundleExtrasPath = resolvePath(editorBundleExtrasPath);
+    }
+
     try {
         editorBundleExtrasText = readFileSync(editorBundleExtrasPath, { encoding: "utf8" });
     } catch (error) {
@@ -71,6 +84,7 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
 
         console.error(error);
 
+        console.error("");
         console.error("Could not evaluate the editor bundle");
 
         if (editorBundleText.length > 0) {
@@ -84,6 +98,8 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
 
             componentDefinitions = parseEditorBundle(rootDirPath, commanderOptions, bundleReport, true);
         } else {
+            console.error("You might have to specify some extra definitions through the editor bundle extras option");
+
             bundleReport.myEditorBundleIgnored = true;
 
             componentDefinitions = new Map<string, ModifiedComponentPropertyRecord>();

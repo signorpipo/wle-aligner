@@ -3,7 +3,7 @@
 import { ArrayToken, JSONTokenType, JSONValueToken, ObjectToken, StringToken } from "@playkostudios/jsonc-ast";
 import { Type } from "@wonderlandengine/api";
 import crypto from "crypto";
-import path from "path";
+import { format as formatPath, parse as parsePath, resolve as resolvePath } from 'node:path';
 import { customPhysxMeshOptsType } from "../common/bundle/component_utils.js";
 import { ModifiedComponentProperty, ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } from "../common/project/jsonast_utils.js";
@@ -24,9 +24,11 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
                 project.save();
             } else {
                 if (commanderOptions.output != null) {
-                    project.save(commanderOptions.output);
+                    project.save(resolvePath(commanderOptions.output));
                 } else {
-                    project.save(path.join(path.dirname(project.myPath), "uuidified-" + path.basename(project.myPath)));
+                    const uudifiedPath = parsePath(project.myPath);
+                    uudifiedPath.base = "uuidified-" + uudifiedPath.base;
+                    project.save(formatPath(uudifiedPath));
                 }
             }
             processReport.myProcessCompleted = true;

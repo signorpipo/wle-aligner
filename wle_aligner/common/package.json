@@ -11,6 +11,7 @@
     "dependencies": {
         "@playkostudios/jsonc-ast": "^0.1.5",
         "commander": "^11.1.0",
+        "glob": "^10.3.10",
         "isolated-vm": "^4.6.0",
         "validator": "^13.11.0"
     },

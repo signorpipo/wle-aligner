@@ -120,6 +120,7 @@ function _alignObjects(sourceProject: Project, targetProject: Project, targetIDT
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
+        // #TODO for objects we might be less strict and if parent and name are the same, then we could ignore the link, even if one object has it and another doesn't
         somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myObjects, targetProject.myObjects, targetIDTokens, ["link", "name", "parent"], commanderOptions, processReport);
     }
 

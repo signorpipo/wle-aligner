@@ -54,7 +54,7 @@ export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOp
                 console.log("  - " + failedProjectPath);
             }
             console.log("");
-        } else if (projectPaths.length > 0) {
+        } else if (projectPaths.length > 1) {
             console.log("-");
             console.log("");
             console.log("UUIDIFY completed for all projects");

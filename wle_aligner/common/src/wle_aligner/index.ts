@@ -21,3 +21,7 @@ program
     .action(wleAlignProjects);
 
 program.parseAsync();
+
+// #TODO add an option to check for "duplicates" between the projects, which means IDs used in both project which do not represent the same resource
+// the align should stop if there are duplicates, but since you might have done it on purpose, it should also be added an option to let the align works even if there are
+// duplicates

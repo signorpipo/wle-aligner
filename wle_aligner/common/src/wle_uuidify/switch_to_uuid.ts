@@ -19,7 +19,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
         _switchTokenToUUID(project.getAllObjectTokens(), idTokens, processReport);
 
         const duplicatedIDsAfterSwitch = getDuplicateIDs(project);
-        if (duplicatedIDsAfterSwitch.length == 0) {
+        if (duplicatedIDsAfterSwitch.length == 0 || commanderOptions.writeOnFail != null) {
             if (commanderOptions.replace != null) {
                 await project.save();
             } else {
@@ -31,7 +31,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
                     await project.save(formatPath(uudifiedPath));
                 }
             }
-            processReport.myProcessCompleted = true;
+            processReport.myProcessCompleted = duplicatedIDsAfterSwitch.length == 0;
         } else {
             processReport.myDuplicatedIDAfterSwitch = true;
         }

@@ -97,7 +97,7 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
         processReport.mySomethingChanged = somethingChanged;
 
         processReport.myDuplicatedIDsAfterAlign = getDuplicateIDs(targetProject);
-        if (processReport.myDuplicatedIDsAfterAlign.length == 0) {
+        if (processReport.myDuplicatedIDsAfterAlign.length == 0 || commanderOptions.writeOnFail != null) {
             if (commanderOptions.replace != null) {
                 await targetProject.save();
             } else {
@@ -107,7 +107,7 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
                     await targetProject.save(path.join(path.dirname(targetProject.myPath), "aligned-" + path.basename(targetProject.myPath)));
                 }
             }
-            processReport.myProcessCompleted = true;
+            processReport.myProcessCompleted = processReport.myDuplicatedIDsAfterAlign.length == 0;
         }
     }
 }
@@ -252,9 +252,17 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     }
 
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
+        if (processReport.myAlignedIDs.indexOf(sourceID) >= 0) continue;
+
         let skipSourceID = false;
-        for (const [targetID, __targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
-            if (targetID == sourceID) {
+        for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
+            if (sourceID == targetID) {
+                if (processReport.myTokensReplaced.indexOf(targetTokenToCheck) >= 0) continue;
+
+                if (targetTokenToCheck != null) {
+                    processReport.myTokensReplaced.push(targetTokenToCheck);
+                }
+                processReport.myAlignedIDs.push(sourceID);
                 skipSourceID = true;
                 break;
             }
@@ -309,7 +317,7 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                         const targetPropertyTokenToCheck = targetPropertiesTokensToCheck.get(propertyName);
                         const areTokensPropertiesEqual = areTokensEqual(sourcePropertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
                         if (areTokensPropertiesEqual) {
-                            if (targetPropertyTokenToCheck != null) {
+                            if (sourcePropertyTokenToCheck != null && targetPropertyTokenToCheck != null) {
                                 currentPropertiesToCheckUsed.push(propertyName);
                             }
                         } else {
@@ -332,8 +340,6 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                     if (targetTokenToCheck != null) {
                         processReport.myTokensReplaced.push(targetTokenToCheck);
                     }
-
-                    break;
                 }
             }
         }
@@ -362,6 +368,7 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                 _replaceID(targetIDToReplace, sourceID, targetIDTokens!);
 
                 processReport.myTokensReplaced.push(targetTokenToReplace);
+                processReport.myAlignedIDs.push(sourceID);
 
                 somethingChanged = true;
             }

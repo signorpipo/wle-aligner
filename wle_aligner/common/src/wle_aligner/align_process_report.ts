@@ -10,4 +10,5 @@ export class AlignProcessReport extends ProcessReport {
     myTokensReplaced: JSONToken[] = [];
     myNotUniqueResourceIDs: string[] = [];
     mySomethingChanged: boolean = false;
+    myAlignedIDs: string[] = [];
 }

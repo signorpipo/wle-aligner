@@ -120,8 +120,6 @@ function _alignObjects(sourceProject: Project, targetProject: Project, targetIDT
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        // #TODO for objects we might be less strict and if parent and name are the same, then we could ignore the link, even if one object has it and another doesn't,
-        // since if the name has been explicitly specified to be the same and the parent is the same, if there is no similar object then it very likely represent the same one
         somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myObjects, targetProject.myObjects, targetIDTokens, ["link", "name", "parent"], commanderOptions, processReport);
     }
 
@@ -254,6 +252,17 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
     }
 
     for (const [sourceID, sourceTokenToCheck] of sourceObjectToken.getTokenEntries()) {
+        let skipSourceID = false;
+        for (const [targetID, __targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
+            if (targetID == sourceID) {
+                skipSourceID = true;
+                break;
+            }
+        }
+        if (skipSourceID) continue;
+
+        let propertiesToCheckUsed: string[] = [];
+
         let strictCheckUsed = false;
 
         let targetIDToReplace: string | null = null;
@@ -295,14 +304,29 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
                     }
 
                     let areAllTokensEqual = true;
+                    const currentPropertiesToCheckUsed: string[] = [];
                     for (const [propertyName, sourcePropertyTokenToCheck] of sourcePropertiesTokensToCheck.entries()) {
-                        areAllTokensEqual = areAllTokensEqual && areTokensEqual(sourcePropertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
+                        const targetPropertyTokenToCheck = targetPropertiesTokensToCheck.get(propertyName);
+                        const areTokensPropertiesEqual = areTokensEqual(sourcePropertyTokenToCheck, targetPropertiesTokensToCheck.get(propertyName));
+                        if (areTokensPropertiesEqual) {
+                            if (targetPropertyTokenToCheck != null) {
+                                currentPropertiesToCheckUsed.push(propertyName);
+                            }
+                        } else {
+                            areAllTokensEqual = false;
+                        }
                     }
 
                     if (areAllTokensEqual) {
+                        propertiesToCheckUsed = propertiesToCheck;
                         targetIDToReplace = targetID;
                         targetTokenToReplace = targetTokenToCheck;
                         break;
+                    } else if (currentPropertiesToCheckUsed.length > propertiesToCheckUsed.length) {
+                        // #TODO there could be a priority management for when the length is the same
+                        propertiesToCheckUsed = currentPropertiesToCheckUsed;
+                        targetIDToReplace = targetID;
+                        targetTokenToReplace = targetTokenToCheck;
                     }
                 } else {
                     if (targetTokenToCheck != null) {
@@ -317,21 +341,20 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         if (targetIDToReplace != null && targetTokenToReplace != null) {
             let canReplace = false;
 
-            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheck, strictCheckUsed);
+            const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheckUsed, strictCheckUsed);
 
             let isTargetTokenUnique = true;
             if (isSourceTokenUnique) {
-                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, sourceObjectToken, propertiesToCheck, strictCheckUsed);
+                isTargetTokenUnique = _isTokenUnique(targetIDToReplace, targetTokenToReplace, targetObjectToken, sourceObjectToken, propertiesToCheckUsed, strictCheckUsed);
             }
 
-            if (commanderOptions.unsafe != null) {
+            if (commanderOptions.unsafe != null && propertiesToCheckUsed.length == propertiesToCheck.length) {
                 canReplace = true;
                 if (!isSourceTokenUnique || !isTargetTokenUnique) {
                     processReport.myNotUniqueResourceIDs.push(sourceID);
                 }
             } else {
                 canReplace = isSourceTokenUnique && isTargetTokenUnique;
-                // skippare quelli che hanno stesso ID
             }
 
             if (canReplace) {
@@ -349,9 +372,11 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
 }
 
 function _isTokenUnique(tokenID: string, tokenToCheck: JSONValueToken, objectToken: ObjectToken, targetObjectToken: ObjectToken, propertiesToCheck: string[], strictCheckUsed: boolean): boolean {
-    let isUnique = true;
+    let isUnique = false;
 
     if (strictCheckUsed) {
+        isUnique = true;
+
         const equalTargetTokens = getEqualJSONTokens(tokenToCheck, objectToken, true);
         if (equalTargetTokens.length > 0) {
             for (const equalTargetToken of equalTargetTokens) {
@@ -366,6 +391,8 @@ function _isTokenUnique(tokenID: string, tokenToCheck: JSONValueToken, objectTok
             }
         }
     } else if (propertiesToCheck.length > 0) {
+        isUnique = true;
+
         const propertiesTokensToCheck: Map<string, JSONValueToken | null> = new Map();
         for (const propertyToCheck of propertiesToCheck) {
             propertiesTokensToCheck.set(propertyToCheck, ObjectToken.assert(tokenToCheck).maybeGetValueTokenOfKey(propertyToCheck));

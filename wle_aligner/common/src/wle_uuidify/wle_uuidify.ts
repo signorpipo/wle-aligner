@@ -54,10 +54,14 @@ export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOp
                 console.log("  - " + failedProjectPath);
             }
             console.log("");
+            console.log("Total time taken: " + process.uptime().toFixed(2) + " seconds");
+            console.log("");
         } else if (projectPaths.length > 1) {
             console.log("-");
             console.log("");
             console.log("UUIDIFY completed for all projects");
+            console.log("");
+            console.log("Total time taken: " + process.uptime().toFixed(2) + " seconds");
             console.log("");
         }
     } catch (error) {
@@ -72,6 +76,8 @@ export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOp
 }
 
 export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, commanderOptions: Record<string, string>): Promise<boolean> {
+    const startProcessUpTime = process.uptime();
+
     if (uuidifyPrefix.length > 0) {
         console.log("UUIDIFY " + uuidifyPrefix);
     }
@@ -112,6 +118,8 @@ export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, com
         } else {
             await switchToUUID(project, projectComponentsDefinitions, commanderOptions, processReport);
             _logSwitchToUUIDReport(uuidifyPrefix, commanderOptions, processReport);
+            console.log("Time taken: " + (process.uptime() - startProcessUpTime).toFixed(2) + " seconds");
+            console.log("");
         }
     } else {
         console.log("");

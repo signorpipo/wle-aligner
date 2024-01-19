@@ -102,6 +102,9 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
             console.log("");
             console.log("No valid target project path have been specified");
             console.log("");
+        } else if (totalAlignToPerform > 1) {
+            console.log("Total time taken: " + process.uptime().toFixed(2) + " seconds");
+            console.log("");
         }
     } catch (error) {
         if (error instanceof CommanderError) {
@@ -115,6 +118,8 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
 }
 
 export async function wleAlign(sourceProjectPath: string, targetProjectPath: string, alignPrefix: string, commanderOptions: Record<string, string>): Promise<boolean> {
+    const startProcessUpTime = process.uptime();
+
     if (alignPrefix.length > 0) {
         console.log("ALIGN " + alignPrefix);
     }
@@ -151,6 +156,8 @@ export async function wleAlign(sourceProjectPath: string, targetProjectPath: str
         } else {
             await alignProjects(sourceProject, targetProject, projectComponentsDefinitions, commanderOptions, processReport);
             _logAlignProjectsReport(alignPrefix, commanderOptions, processReport);
+            console.log("Time taken: " + (process.uptime() - startProcessUpTime).toFixed(2) + " seconds");
+            console.log("");
         }
     } else {
         console.log("");

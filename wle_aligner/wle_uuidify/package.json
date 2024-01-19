@@ -1,6 +1,6 @@
 {
     "name": "wle-uuidify",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "author": "Pipo",
     "description": "Switch Wonderland Engine project incremental number IDs to UUID",
     "homepage": "https://github.com/SignorPipo/wle-aligner",

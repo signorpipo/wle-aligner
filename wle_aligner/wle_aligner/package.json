@@ -1,6 +1,6 @@
 {
     "name": "wle-aligner",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": "Pipo",
     "description": "Align two Wonderland Engine projects so that they can share, as much as possible, the same resources and structure",
     "homepage": "https://github.com/SignorPipo/wle-aligner",

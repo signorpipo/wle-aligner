@@ -16,9 +16,17 @@ NPM package: https://www.npmjs.com/package/wle-aligner
 
 ## :warning: Warning
 This tool is very experimental.
-To perform this alignment it tries to guess which objects/resources might represent the same thing on both projects. This means that there might be mistakes in this process.  
+To perform this alignment it tries to guess which objects/resources might represent the same thing on both projects. This means that there might be mistakes in this process.
+
 Always verify that the aligned project is OK after using the tool.  
 Make sure to use version control.
+
+## Why should I use this?
+
+The aligner is useful when you have a project which contains multiple wlp projects that share similar resources and objects.  
+If you find yourself copy pasting stuff between projects, when the same resource does not actually have the same ID on both projects you always have to manually fix the references.
+
+After the projects have been aligned, most resources will share the same ID on both projects, so it will be easier to sync them!
 
 ## Installing
 

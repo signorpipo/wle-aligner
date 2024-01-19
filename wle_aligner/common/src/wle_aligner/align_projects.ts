@@ -257,11 +257,10 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         let skipSourceID = false;
         for (const [targetID, targetTokenToCheck] of targetObjectToken.getTokenEntries()) {
             if (sourceID == targetID) {
-                if (processReport.myTokensReplaced.indexOf(targetTokenToCheck) >= 0) continue;
-
-                if (targetTokenToCheck != null) {
+                if (targetTokenToCheck != null && processReport.myTokensReplaced.indexOf(targetTokenToCheck) == -1) {
                     processReport.myTokensReplaced.push(targetTokenToCheck);
                 }
+
                 processReport.myAlignedIDs.push(sourceID);
                 skipSourceID = true;
                 break;
@@ -345,6 +344,10 @@ function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, ta
         }
 
         if (targetIDToReplace != null && targetTokenToReplace != null) {
+            if (sourceID == "32df9139-8e30-4a64-b9b0-0cf3a118a95c") {
+                console.error("ID", targetIDToReplace);
+            }
+
             let canReplace = false;
 
             const isSourceTokenUnique = _isTokenUnique(sourceID, sourceTokenToCheck, sourceObjectToken, targetObjectToken, propertiesToCheckUsed, strictCheckUsed);

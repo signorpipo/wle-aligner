@@ -9,7 +9,7 @@ import { Project } from "../common/project/project.js";
 import { getDuplicateIDs, getIDTokens } from "../wle_uuidify/switch_to_uuid.js";
 import { AlignProcessReport } from "./align_process_report.js";
 
-export async function alignProjects(sourceProject: Project, targetProject: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
+export async function alignProjects(sourceProject: Project, targetProject: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null, commanderOptions: Record<string, string>, processReport: AlignProcessReport): Promise<void> {
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
         processReport.mySourceDuplicatedIDs.push(...getDuplicateIDs(sourceProject));
         processReport.myTargetDuplicatedIDs.push(...getDuplicateIDs(targetProject));
@@ -104,7 +104,7 @@ export async function alignProjects(sourceProject: Project, targetProject: Proje
                 if (commanderOptions.output != null) {
                     await targetProject.save(commanderOptions.output);
                 } else {
-                    await targetProject.save(path.join(path.dirname(targetProject.myPath), "aligned-" + path.basename(targetProject.myPath)));
+                    await targetProject.save(path.join(path.dirname(targetProject.myPath!), "aligned-" + path.basename(targetProject.myPath!)));
                 }
             }
             processReport.myProcessCompleted = processReport.myDuplicatedIDsAfterAlign.length == 0;
@@ -120,7 +120,7 @@ function _alignObjects(sourceProject: Project, targetProject: Project, targetIDT
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myObjects, targetProject.myObjects, targetIDTokens, ["link", "name", "parent"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myObjects!, targetProject.myObjects!, targetIDTokens, ["link", "name", "parent"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -130,7 +130,7 @@ function _alignMeshes(sourceProject: Project, targetProject: Project, targetIDTo
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myMeshes, targetProject.myMeshes, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myMeshes!, targetProject.myMeshes!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -140,7 +140,7 @@ function _alignTextures(sourceProject: Project, targetProject: Project, targetID
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myTextures, targetProject.myTextures, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myTextures!, targetProject.myTextures!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -150,7 +150,7 @@ function _alignImages(sourceProject: Project, targetProject: Project, targetIDTo
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myImages, targetProject.myImages, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myImages!, targetProject.myImages!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -160,7 +160,7 @@ function _alignMaterials(sourceProject: Project, targetProject: Project, targetI
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myMaterials, targetProject.myMaterials, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myMaterials!, targetProject.myMaterials!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -170,7 +170,7 @@ function _alignShaders(sourceProject: Project, targetProject: Project, targetIDT
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myShaders, targetProject.myShaders, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myShaders!, targetProject.myShaders!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -180,7 +180,7 @@ function _alignAnimations(sourceProject: Project, targetProject: Project, target
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myAnimations, targetProject.myAnimations, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myAnimations!, targetProject.myAnimations!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -190,7 +190,7 @@ function _alignSkins(sourceProject: Project, targetProject: Project, targetIDTok
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.mySkins, targetProject.mySkins, targetIDTokens, ["link", "name", "joints"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.mySkins!, targetProject.mySkins!, targetIDTokens, ["link", "name", "joints"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -200,7 +200,7 @@ function _alignPipelines(sourceProject: Project, targetProject: Project, targetI
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myPipelines, targetProject.myPipelines, targetIDTokens, ["link", "name", "shader"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myPipelines!, targetProject.myPipelines!, targetIDTokens, ["link", "name", "shader"], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -210,7 +210,7 @@ function _alignFiles(sourceProject: Project, targetProject: Project, targetIDTok
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myFiles, targetProject.myFiles, targetIDTokens, [], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myFiles!, targetProject.myFiles!, targetIDTokens, [], commanderOptions, processReport);
     }
 
     return somethingChanged;
@@ -220,13 +220,13 @@ function _alignFonts(sourceProject: Project, targetProject: Project, targetIDTok
     let somethingChanged = false;
 
     if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myFonts, targetProject.myFonts, targetIDTokens, ["link", "name"], commanderOptions, processReport);
+        somethingChanged = _replaceIDOfTokensWithSameProperties(sourceProject.myFonts!, targetProject.myFonts!, targetIDTokens, ["link", "name"], commanderOptions, processReport);
     }
 
     return somethingChanged;
 }
 
-function _replaceID(oldID: string, newID: string, idTokens: ParentChildTokenPair[]) {
+function _replaceID(oldID: string, newID: string, idTokens: ParentChildTokenPair[]): void {
     for (const idTokenToReplace of idTokens) {
         const childID = StringToken.assert(idTokenToReplace.child).evaluate();
         if (childID == oldID) {
@@ -240,7 +240,8 @@ function _isID(idToCheck: string): boolean {
         return true;
     }
 
-    return isUUID(idToCheck);
+    const callableIsUUID = isUUID as any;
+    return callableIsUUID(idToCheck);
 }
 
 function _replaceIDOfTokensWithSameProperties(sourceObjectToken: ObjectToken, targetObjectToken: ObjectToken, targetIDTokens: ParentChildTokenPair[] | null, propertiesToCheck: string[], commanderOptions: Record<string, string>, processReport: AlignProcessReport): boolean {

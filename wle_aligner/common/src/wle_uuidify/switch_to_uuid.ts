@@ -10,7 +10,7 @@ import { ParentChildTokenPair, getJSONTokensHierarchy, replaceParentTokenKey } f
 import { Project } from "../common/project/project.js";
 import { ProcessReport } from "./process_report.js";
 
-export async function switchToUUID(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport) {
+export async function switchToUUID(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, commanderOptions: Record<string, string>, processReport: ProcessReport): Promise<void> {
     processReport.myDuplicatedIDs.push(...getDuplicateIDs(project));
 
     if (processReport.myDuplicatedIDs.length == 0) {
@@ -26,7 +26,7 @@ export async function switchToUUID(project: Project, projectComponentsDefinition
                 if (commanderOptions.output != null) {
                     await project.save(resolvePath(commanderOptions.output));
                 } else {
-                    const uudifiedPath = parsePath(project.myPath);
+                    const uudifiedPath = parsePath(project.myPath!);
                     uudifiedPath.base = "uuidified-" + uudifiedPath.base;
                     await project.save(formatPath(uudifiedPath));
                 }
@@ -57,7 +57,7 @@ export function getDuplicateIDs(project: Project): string[] {
     return duplicatedIDs;
 }
 
-export function getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
+export function getIDTokens(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(..._getIDTokensFromObjects(project, projectComponentsDefinitions, isIDCallback, commanderOptions, processReport));
@@ -73,10 +73,10 @@ export function getIDTokens(project: Project, projectComponentsDefinitions: Map<
 
 // PRIVATE
 
-function _getIDTokensFromMaterials(project: Project, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
+function _getIDTokensFromMaterials(project: Project, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    for (const [__materialID, materialTokenToCheck] of project.myMaterials.getTokenEntries()) {
+    for (const [__materialID, materialTokenToCheck] of project.myMaterials!.getTokenEntries()) {
         const materialToken = ObjectToken.assert(materialTokenToCheck);
 
         const pipelineTokenToCheck = materialToken.maybeGetValueTokenOfKey("pipeline");
@@ -111,32 +111,32 @@ function _getIDTokensFromMaterials(project: Project, isIDCallback: (string) => b
     return idTokens;
 }
 
-function _getIDTokensFromSettings(project: Project, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
+function _getIDTokensFromSettings(project: Project, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
         return tokenKey == "viewObject" && tokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(tokenToCheck).evaluate());
-    }, project.mySettings));
+    }, project.mySettings!));
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
         return tokenKey == "leftEyeObject" && tokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(tokenToCheck).evaluate());
-    }, project.mySettings));
+    }, project.mySettings!));
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
         return tokenKey == "rightEyeObject" && tokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(tokenToCheck).evaluate());
-    }, project.mySettings));
+    }, project.mySettings!));
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
         return tokenKey == "appIcon" && tokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(tokenToCheck).evaluate());
-    }, project.mySettings));
+    }, project.mySettings!));
     idTokens.push(...getJSONTokensHierarchy(function (tokenKey: string, tokenToCheck: JSONValueToken): boolean {
         return tokenKey == "material" && tokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(tokenToCheck).evaluate());
-    }, project.mySettings));
+    }, project.mySettings!));
 
     return idTokens;
 }
 
-function _getIDTokensFromSkins(project: Project, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
+function _getIDTokensFromSkins(project: Project, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    for (const [__skinID, skinTokenToCheck] of project.mySkins.getTokenEntries()) {
+    for (const [__skinID, skinTokenToCheck] of project.mySkins!.getTokenEntries()) {
         const skinToken = ObjectToken.assert(skinTokenToCheck);
 
         const jointsTokenToCheck = skinToken.maybeGetValueTokenOfKey("joints");
@@ -156,10 +156,10 @@ function _getIDTokensFromSkins(project: Project, isIDCallback: (string) => boole
     return idTokens;
 }
 
-function _getIDTokensFromPipelines(project: Project, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
+function _getIDTokensFromPipelines(project: Project, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    for (const [__pipelineID, pipelineTokenToCheck] of project.myPipelines.getTokenEntries()) {
+    for (const [__pipelineID, pipelineTokenToCheck] of project.myPipelines!.getTokenEntries()) {
         const pipelineToken = ObjectToken.assert(pipelineTokenToCheck);
 
         const shaderTokenToCheck = pipelineToken.maybeGetValueTokenOfKey("shader");
@@ -173,10 +173,10 @@ function _getIDTokensFromPipelines(project: Project, isIDCallback: (string) => b
     return idTokens;
 }
 
-function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
+function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord>, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): ParentChildTokenPair[] {
     const idTokens: ParentChildTokenPair[] = [];
 
-    for (const [__objectID, objectTokenToCheck] of project.myObjects.getTokenEntries()) {
+    for (const [__objectID, objectTokenToCheck] of project.myObjects!.getTokenEntries()) {
         const objectToken = ObjectToken.assert(objectTokenToCheck);
 
         const parentTokenToCheck = objectToken.maybeGetValueTokenOfKey("parent");
@@ -221,7 +221,7 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
 
 const _isPropertyValueTokenID = function () {
     const idTypes: (Type | symbol)[] = [Type.Mesh, Type.Texture, Type.Animation, Type.Material, Type.Object, Type.Skin];
-    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, componentType: string, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
+    return function (propertyKey: string, propertyValueTokenToCheck: JSONValueToken, componentType: string, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
         let isID = false;
 
         let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -259,7 +259,7 @@ const _isPropertyValueTokenID = function () {
     };
 }();
 
-function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, isIDCallback: (string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
+function _isPhysXMeshToken(componentTypeToken: string, propertyKey: string, propertyValueTokenToCheck: JSONValueToken, projectComponentDefinitions: ModifiedComponentPropertyRecord | undefined, isIDCallback: (string: string) => boolean, commanderOptions: Record<string, string>, processReport: ProcessReport): boolean {
     let isPhysXMesh = false;
 
     let propertyDefinition: ModifiedComponentProperty | null = null;
@@ -339,7 +339,7 @@ const _randomUUID = function () {
     };
 }();
 
-function _switchTokenToUUID(objectTokens: ObjectToken[], idTokens: ParentChildTokenPair[], processReport: ProcessReport) {
+function _switchTokenToUUID(objectTokens: ObjectToken[], idTokens: ParentChildTokenPair[], processReport: ProcessReport): void {
     for (const objectToken of objectTokens) {
         for (const [id, __tokenToCheck] of objectToken.getTokenEntries()) {
             if (_isIncrementalNumberID(id)) {

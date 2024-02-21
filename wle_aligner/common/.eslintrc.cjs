@@ -14,7 +14,7 @@ module.exports = {
     },
     plugins: [
         "deprecation",
-        "@typescript-eslint"
+        "@typescript-eslint/eslint-plugin"
     ],
     extends: [
         "eslint:recommended",
@@ -22,13 +22,24 @@ module.exports = {
     ],
     rules: {
         "semi": "error",
+        "no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^__" }],
         "deprecation/deprecation": "error",
-        "@typescript-eslint/no-unused-vars": ["error", { "args": "none", "varsIgnorePattern": "^__" }]
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off"
     },
     ignorePatterns: [
         "/node_modules/",
         ".eslintrc.cjs"
     ],
     overrides: [
+        {
+            "files": ["*.ts"],
+            "rules": {
+                "@typescript-eslint/explicit-function-return-type": [
+                    "error",
+                    { "allowExpressions": true }
+                ]
+            }
+        }
     ]
 };

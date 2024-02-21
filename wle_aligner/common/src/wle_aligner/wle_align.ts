@@ -4,10 +4,10 @@ import { parse as parsePath, resolve as resolvePath } from "node:path";
 import { getProjectComponentsDefinitions } from "../common/bundle/component_utils.js";
 import { ModifiedComponentPropertyRecord } from "../common/bundle/modified_component_property.js";
 import { Project } from "../common/project/project.js";
-import { alignProjects } from "./align_projects.js";
 import { AlignProcessReport } from "./align_process_report.js";
+import { alignProjects } from "./align_projects.js";
 
-export async function wleAlignProjects(sourceProjectGlobPath: string, targetProjectGlobPaths: string[], commanderOptions: Record<string, string>) {
+export async function wleAlignProjects(sourceProjectGlobPath: string, targetProjectGlobPaths: string[], commanderOptions: Record<string, string>): Promise<void> {
     try {
         const sourceProjectPathsRaw = globSync(sourceProjectGlobPath);
         const sourceProjectPath = resolvePath(sourceProjectPathsRaw[0]);
@@ -177,7 +177,7 @@ export async function wleAlign(sourceProjectPath: string, targetProjectPath: str
 
 // PRIVATE
 
-function _logAlignProjectsReport(alignPrefix: string, commanderOptions: Record<string, string>, processReport: AlignProcessReport) {
+function _logAlignProjectsReport(alignPrefix: string, commanderOptions: Record<string, string>, processReport: AlignProcessReport): void {
     if (processReport.myDuplicatedIDsAfterAlign.length > 0) {
         console.log("");
         console.log("- after the align some duplicated IDs have been found");

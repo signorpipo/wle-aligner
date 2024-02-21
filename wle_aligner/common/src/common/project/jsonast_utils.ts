@@ -1,4 +1,4 @@
-import { ArrayToken, JSONParentToken, JSONToken, JSONTokenType, JSONValueToken, KeyToken, ObjectToken } from "@playkostudios/jsonc-ast";
+import { ArrayToken, JSONParentToken, JSONTokenType, JSONValueToken, KeyToken, ObjectToken } from "@playkostudios/jsonc-ast";
 
 export class ParentChildTokenPair {
     parent: JSONParentToken;

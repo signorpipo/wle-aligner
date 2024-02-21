@@ -6,7 +6,7 @@ import { Project } from "../common/project/project.js";
 import { ProcessReport } from "./process_report.js";
 import { getDuplicateIDs, switchToUUID } from "./switch_to_uuid.js";
 
-export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOptions: Record<string, string>) {
+export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOptions: Record<string, string>): Promise<void> {
     try {
         const projectPaths: string[] = [];
         for (const projectGlobRaw of projectGlobPaths) {
@@ -134,7 +134,7 @@ export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, com
 
 // PRIVATE
 
-function _logSwitchToUUIDReport(uuidifyPrefix: string, commanderOptions: Record<string, string>, processReport: ProcessReport) {
+function _logSwitchToUUIDReport(uuidifyPrefix: string, commanderOptions: Record<string, string>, processReport: ProcessReport): void {
     if (processReport.myDuplicatedIDAfterSwitch) {
         console.log("");
         console.log("- after the switch to UUIDs some duplicated IDs have been found");

@@ -186,6 +186,13 @@ function _getIDTokensFromObjects(project: Project, projectComponentsDefinitions:
             }
         }
 
+        const skinTokenToCheck = objectToken.maybeGetValueTokenOfKey("skin");
+        if (skinTokenToCheck) {
+            if (skinTokenToCheck.type === JSONTokenType.String && isIDCallback(StringToken.assert(skinTokenToCheck).evaluate())) {
+                idTokens.push(new ParentChildTokenPair(objectToken, StringToken.assert(skinTokenToCheck)));
+            }
+        }
+
         const componentsTokenToCheck = objectToken.maybeGetValueTokenOfKey("components");
         if (componentsTokenToCheck) {
             const componentsToken = ArrayToken.assert(componentsTokenToCheck);

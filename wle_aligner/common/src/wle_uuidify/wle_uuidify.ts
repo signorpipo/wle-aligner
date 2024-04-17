@@ -17,13 +17,21 @@ export async function wleUUIDifyProjects(projectGlobPaths: string[], commanderOp
             }
         }
 
+        if (projectGlobPaths.length > 0 && projectPaths.length == 0) {
+            if (projectGlobPaths.length > 1) {
+                throw new CommanderError(1, "bad-project-path", "error: the specified projects do not exist\n");
+            } else {
+                throw new CommanderError(1, "bad-project-path", "error: the specified project does not exist\n");
+            }
+        }
+
         if (commanderOptions.output != null) {
             if (commanderOptions.replace != null) {
-                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace option\n");
+                throw new CommanderError(1, "output-replace-clash", "error: --output option cannot be used with --replace option\n");
             }
 
             if (projectPaths.length > 1) {
-                throw new CommanderError(1, "output-multiple-projects-clash", "--output option cannot be used when multiple projects are specified\n");
+                throw new CommanderError(1, "output-multiple-projects-clash", "error: --output option cannot be used when multiple projects are specified\n");
             }
         }
 

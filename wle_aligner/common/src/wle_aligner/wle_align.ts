@@ -10,6 +10,11 @@ import { alignProjects } from "./align_projects.js";
 export async function wleAlignProjects(sourceProjectGlobPath: string, targetProjectGlobPaths: string[], commanderOptions: Record<string, string>): Promise<void> {
     try {
         const sourceProjectPathsRaw = globSync(sourceProjectGlobPath);
+
+        if (sourceProjectPathsRaw.length == 0) {
+            throw new CommanderError(1, "bad-project-path", "error: the specified source project does not exist\n");
+        }
+
         const sourceProjectPath = resolvePath(sourceProjectPathsRaw[0]);
 
         const targetProjectPaths: string[] = [];
@@ -21,18 +26,26 @@ export async function wleAlignProjects(sourceProjectGlobPath: string, targetProj
             }
         }
 
+        if (targetProjectPaths.length == 0) {
+            if (targetProjectGlobPaths.length > 1) {
+                throw new CommanderError(1, "bad-project-path", "error: the specified target projects do not exist\n");
+            } else {
+                throw new CommanderError(1, "bad-project-path", "error: the specified target project does not exist\n");
+            }
+        }
+
         if (commanderOptions.output != null) {
             if (commanderOptions.replace != null) {
-                throw new CommanderError(1, "output-replace-clash", "--output option cannot be used with --replace option\n");
+                throw new CommanderError(1, "output-replace-clash", "error: --output option cannot be used with --replace option\n");
             }
 
             if (targetProjectPaths.length > 1) {
-                throw new CommanderError(1, "output-multiple-projects-clash", "--output option cannot be used when multiple projects are specified\n");
+                throw new CommanderError(1, "output-multiple-projects-clash", "error: --output option cannot be used when multiple projects are specified\n");
             }
         }
 
         if (commanderOptions.allCombinations != null && commanderOptions.replace == null) {
-            throw new CommanderError(1, "all-combinations-replace-clash", "--all-combinations option can be used only when the --replace option is also specified\n");
+            throw new CommanderError(1, "all-combinations-replace-clash", "error: --all-combinations option can be used only when the --replace option is also specified\n");
         }
 
         let sourceProjectPaths: string[] = [];

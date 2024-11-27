@@ -9,7 +9,7 @@ program
     .option("-o, --output <path>", "where the aligned target project file will be stored\r (default: \"<target-project-dir>/target-<target-project-name>\")")
     .option("-r, --replace", "replace the original target project, ignoring the --output option, if specified")
     .option("-u, --unsafe", "align the projects even if there is no editor bundle, it contains errors, or the properties might not represent the same on both projects")
-    .option("-a, --all-combinations", "align every specified project with the others\rcan be used only when the --replace option is also specified\ryou can use \"*.wlp\" as both the source and the target project path to align every wlps in your folder")
+    .option("-c, --all-combinations", "align every specified project with the others\rcan be used only when the --replace option is also specified\ryou can use \"*.wlp\" as both the source and the target project path to align every wlps in your folder")
     .option("-s, --strict", "align only the resources that contains the same value for all their properties, instead of guessing it just through the name, linked assets, or similar \"identifiers\" properties")
     .addOption(new Option("-a, --align <properties...>", "align only the specified resource properties\r")
         .choices(["ids"]))

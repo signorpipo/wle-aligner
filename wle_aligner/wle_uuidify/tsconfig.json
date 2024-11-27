@@ -27,6 +27,7 @@
         ]
     },
     "include": [
-        "../common/src"
+        "../common/src/common",
+        "../common/src/wle_uuidify"
     ]
 }

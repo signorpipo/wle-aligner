@@ -10,21 +10,22 @@
     "type": "module",
     "dependencies": {
         "@playkostudios/jsonc-ast": "^0.1.5",
-        "commander": "^11.1.0",
-        "glob": "^10.3.10",
-        "isolated-vm": "^4.6.0",
+        "commander": "^12.1.0",
+        "glob": "^11.0.0",
+        "isolated-vm": "^5.0.1",
         "validator": "^13.11.0"
     },
-    "peerDependencies": {
-        "@wonderlandengine/api": "^1.1.5"
-    },
     "devDependencies": {
-        "@types/node": "^20.11.0",
+        "@tsconfig/node20": "^20.1.4",
+        "@types/node": "^20.1.4",
+        "typescript": "^5.7.2",
         "@types/validator": "^13.11.9",
         "@typescript-eslint/eslint-plugin": "^6.18.1",
         "@typescript-eslint/parser": "^6.18.1",
         "eslint": "^8.56.0",
-        "eslint-plugin-deprecation": "^2.0.0",
-        "typescript": "^5.3.3"
+        "eslint-plugin-deprecation": "^2.0.0"
+    },
+    "peerDependencies": {
+        "@wonderlandengine/api": ">=1.1.5 <1.3"
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "wle-aligner",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "author": "Pipo",
     "description": "Align two Wonderland Engine projects so that they can share, as much as possible, the same resources and structure",
     "homepage": "https://github.com/SignorPipo/wle-aligner",
@@ -45,7 +45,7 @@
         "eslint-plugin-deprecation": "^2.0.0"
     },
     "peerDependencies": {
-        "@wonderlandengine/api": ">=1.1.5 <1.3"
+        "@wonderlandengine/api": "~1.3.0"
     },
     "scripts": {
         "build": "tsc",

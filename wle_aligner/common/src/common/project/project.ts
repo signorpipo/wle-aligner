@@ -24,6 +24,20 @@ export class Project {
 
     }
 
+    getProjectName(): string | null {
+        let projectName = null;
+
+        if (this._myJSONAST != null) {
+            const projectSettingsToCheck = this.mySettings!.maybeGetValueTokenOfKey("project");
+            if (projectSettingsToCheck != null) {
+                const projectSettings = ObjectToken.assert(projectSettingsToCheck);
+                projectName = (projectSettings.maybeGetValueOfKey("name") ?? null) as (string | null);
+            }
+        }
+
+        return projectName;
+    }
+
     getAllObjectTokens(): ObjectToken[] {
         const objectTokens: ObjectToken[] = [];
 

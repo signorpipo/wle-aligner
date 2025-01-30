@@ -158,7 +158,7 @@ export async function wleAlign(sourceProjectPath: string, targetProjectPath: str
         let projectComponentsDefinitions: Map<string, ModifiedComponentPropertyRecord> | null = null;
 
         if (commanderOptions.align == null || commanderOptions.align.indexOf("ids") >= 0) {
-            projectComponentsDefinitions = getProjectComponentsDefinitions(sourceProjectPath, commanderOptions, processReport);
+            projectComponentsDefinitions = getProjectComponentsDefinitions(sourceProject.getProjectName()!, sourceProjectPath, commanderOptions, processReport);
         }
 
         if ((processReport.myEditorBundleError || processReport.myEditorBundleExtrasError) && commanderOptions.unsafe == null) {

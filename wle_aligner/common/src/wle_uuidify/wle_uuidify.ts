@@ -100,7 +100,7 @@ export async function wleUUIDify(projectPath: string, uuidifyPrefix: string, com
     }
 
     if (!processReport.myProjectLoadFailed) {
-        const projectComponentsDefinitions = getProjectComponentsDefinitions(projectPath, commanderOptions, processReport);
+        const projectComponentsDefinitions = getProjectComponentsDefinitions(project.getProjectName()!, projectPath, commanderOptions, processReport);
 
         if ((processReport.myEditorBundleError || processReport.myEditorBundleExtrasError) && commanderOptions.unsafe == null) {
             console.log("");

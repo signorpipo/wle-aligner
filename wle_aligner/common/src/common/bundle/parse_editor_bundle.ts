@@ -24,7 +24,7 @@ function _registerEditor(regExports) {
 }
 `;
 
-export function parseEditorBundle(projectPath: string, commanderOptions: Record<string, string>, bundleReport: BundleReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
+export function parseEditorBundle(projectName: string, projectPath: string, commanderOptions: Record<string, string>, bundleReport: BundleReport, ignoreEditorBundle: boolean = false): Map<string, ModifiedComponentPropertyRecord> {
     const isolate = new ivm.Isolate({ memoryLimit: 128 });
     const context = isolate.createContextSync();
     const jail = context.global;
@@ -40,7 +40,7 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
     if (!ignoreEditorBundle) {
         let editorBundlePath = commanderOptions.editorBundle;
         if (editorBundlePath == null) {
-            editorBundlePath = resolvePath(parsePath(projectPath).dir, "cache/js/_editor_bundle.cjs");
+            editorBundlePath = resolvePath(parsePath(projectPath).dir, "cache/" + projectName + "/js/_editor_bundle.cjs");
         } else {
             editorBundlePath = resolvePath(editorBundlePath);
         }
@@ -96,7 +96,7 @@ export function parseEditorBundle(projectPath: string, commanderOptions: Record<
         if (!ignoreEditorBundle && editorBundleText.length > 0 && editorBundleExtrasText.length > 0) {
             console.error("A second attempt will be performed using only the bundle extras script");
 
-            componentDefinitions = parseEditorBundle(rootDirPath, commanderOptions, bundleReport, true);
+            componentDefinitions = parseEditorBundle(projectName, rootDirPath, commanderOptions, bundleReport, true);
         } else {
             console.error("You might have to specify some extra definitions through the editor bundle extras option");
 

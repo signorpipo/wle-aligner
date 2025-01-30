@@ -13,8 +13,8 @@ export const customPhysxCapsuleOptsType = Symbol("physx-capsule-options");
 export const customPhysxMeshOptsType = Symbol("physx-mesh-options");
 export const customOpaqueColorType = Symbol("opaque-color");
 
-export function getProjectComponentsDefinitions(projectPath: string, commanderOptions: Record<string, string>, bundleReport: BundleReport): Map<string, ModifiedComponentPropertyRecord> {
-    const componentsDefinitions = parseEditorBundle(projectPath, commanderOptions, bundleReport);
+export function getProjectComponentsDefinitions(projectName: string, projectPath: string, commanderOptions: Record<string, string>, bundleReport: BundleReport): Map<string, ModifiedComponentPropertyRecord> {
+    const componentsDefinitions = parseEditorBundle(projectName, projectPath, commanderOptions, bundleReport);
 
     // Normalize default values of components and panic on unexpected properties
     for (const [compType, compConfig] of componentsDefinitions) {
